@@ -19,3 +19,4 @@ void operator>>(VideoSource &src, Mat& dst) {
     dst = src.Read();
 }
 
+

@@ -1,6 +1,6 @@
 QT -= gui
 
-CONFIG += c++11 console
+CONFIG += c++1z console
 CONFIG -= app_bundle
 
 # The following define makes your compiler emit warnings if you use
@@ -15,11 +15,29 @@ DEFINES += QT_DEPRECATED_WARNINGS
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
-        main.cpp
+        main.cpp \
+        stream_timing_stat.cpp \
+        stream_traffic_stat.cpp \
+        video_source.cpp \
+        video_streamer.cpp
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
 else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
 
+INCLUDEPATH += /usr/local/include/opencv4
+LIBS += -L/usr/local/lib \
+        -lopencv_core \
+        -lopencv_highgui \
+        -lopencv_videoio \
+        -lopencv_imgproc \
+        -lopencv_imgcodecs
+
 LIBS += -L/usr/lib/x86_64-linux-gnu -lx264
+
+HEADERS += \
+    stream_timing_stat.h \
+    stream_traffic_stat.h \
+    video_source.h \
+    video_streamer.h
