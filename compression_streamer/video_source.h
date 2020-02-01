@@ -23,7 +23,7 @@ public:
     template<typename T>
     VideoSource(T id);
     template<typename T>
-    bool Open(T id);
+    void Open(T id);
     Mat Read();
     double GetFps() const;
     double GetTraffic();
@@ -44,7 +44,7 @@ VideoSource::VideoSource(T id) {
 }
 
 template<typename T>
-bool VideoSource::Open(T id) {
+void VideoSource::Open(T id) {
     if (_cap.open(id)) {
         stringstream ss;
         ss << id;

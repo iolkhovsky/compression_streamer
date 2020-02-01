@@ -11,7 +11,7 @@ int main(int argc, char** argv) {
         webcam >> buffer;
 
         std::cout << "FPS: " << webcam.GetFps() << endl;
-        std::cout << "Traffic: " << webcam.GetTraffic() << endl;
+//        std::cout << "Traffic: " << webcam.GetTraffic() << endl;
 
         imshow("Src", buffer);
         if (cv::waitKey(10) == 'q')
