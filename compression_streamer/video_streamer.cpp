@@ -2,6 +2,7 @@
 
 VideoStreamer::VideoStreamer(string ip_dest, size_t udp_dest)
     : _destination_ip(ip_dest), _destination_udp(udp_dest) {
+    open_socket();
     update_destination();
 }
 
@@ -27,7 +28,8 @@ uint32_t VideoStreamer::convert_addr(string ip) {
         if (i != 0)
             ss.ignore(1);
         ss >> buf;
-        out |= (buf << i*8);
+        out = out << 8;
+        out |= buf;
     }
 
     return out;
