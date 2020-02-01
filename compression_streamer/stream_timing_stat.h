@@ -6,11 +6,13 @@
 using std::deque;
 using std::chrono::steady_clock;
 
-class StreamTimingStat {
+namespace StreamStatistics {
+
+class TimingStat {
     using timestamp = steady_clock::time_point;
 
 public:
-    StreamTimingStat() = default;
+    TimingStat() = default;
     void PushEvent();
     double GetFps() const;
     double GetAverageFps() const;
@@ -21,4 +23,8 @@ private:
     void push_timestamp(timestamp t);
     static size_t duration_msecs(timestamp last, timestamp first);
 };
+
+}
+
+
 

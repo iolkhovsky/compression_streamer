@@ -1,16 +1,18 @@
 #include "stream_timing_stat.h"
 
-void StreamTimingStat::PushEvent() {
+namespace StreamStatistics {
+
+void TimingStat::PushEvent() {
     push_timestamp(steady_clock::now());
 }
 
 
-size_t StreamTimingStat::duration_msecs(timestamp last, timestamp first) {
+size_t TimingStat::duration_msecs(timestamp last, timestamp first) {
     auto dur_msecs = std::chrono::duration_cast<std::chrono::milliseconds>(last - first);
     return static_cast<size_t>(dur_msecs.count());
 }
 
-double StreamTimingStat::GetFps() const {
+double TimingStat::GetFps() const {
     if (_tstamps.size() > 1) {
         size_t msecs = duration_msecs(_tstamps.at(0), _tstamps.at(1));
         if (msecs) {
@@ -23,7 +25,7 @@ double StreamTimingStat::GetFps() const {
     }
 }
 
-double StreamTimingStat::GetAverageFps() const {
+double TimingStat::GetAverageFps() const {
     if (_tstamps.size() > 1) {
         size_t msecs = duration_msecs(_tstamps.front(), _tstamps.back());
         if (msecs) {
@@ -36,9 +38,11 @@ double StreamTimingStat::GetAverageFps() const {
     }
 }
 
-void StreamTimingStat::push_timestamp(timestamp t) {
+void TimingStat::push_timestamp(timestamp t) {
     _tstamps.push_front(t);
     while (_tstamps.size() > 25) {
         _tstamps.pop_back();
     }
+}
+
 }

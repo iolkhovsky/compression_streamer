@@ -8,7 +8,9 @@ using std::chrono::duration;
 using std::chrono::time_point;
 using std::chrono::steady_clock;
 
-class StreamTrafficStat {
+namespace StreamStatistics {
+
+class TrafficStat {
     using timestamp = steady_clock::time_point;
 
     struct Event {
@@ -17,8 +19,8 @@ class StreamTrafficStat {
     };
 
 public:
-    StreamTrafficStat();
-    StreamTrafficStat(double time_interval_sec);
+    TrafficStat();
+    TrafficStat(double time_interval_sec);
     void AddTransaction(size_t bytes_cnt);
     double GetAverageTraffic();
 
@@ -29,4 +31,18 @@ private:
 
     void add_event(size_t data_sz, timestamp stamp);
     void check_fifo();
+    size_t usecs_to_tail() const;
 };
+
+enum class TrafficConversion {
+    Byte2Bit,
+    Byte2MegaBit,
+    Byte2GigaBit,
+    Byte2MegaByte,
+    Byte2GigaByte,
+};
+
+double convert_traffic(double traffic, TrafficConversion mode);
+
+}
+

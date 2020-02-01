@@ -32,8 +32,8 @@ private:
     VideoCapture _cap;
     string _id;
     Mat _buffer;
-    StreamTimingStat _timing_stat;
-    StreamTrafficStat _traffic_stat;
+    StreamStatistics::TimingStat _timing;
+    StreamStatistics::TrafficStat _traffic;
 };
 
 void operator>>(VideoSource &src, Mat& dst);
