@@ -2,6 +2,9 @@
 
 VideoStreamer::VideoStreamer(string ip_dest, size_t udp_dest)
     : _destination_ip(ip_dest), _destination_udp(udp_dest) {
+}
+
+void VideoStreamer::Init() {
     open_socket();
     update_destination();
 }
@@ -9,12 +12,11 @@ VideoStreamer::VideoStreamer(string ip_dest, size_t udp_dest)
 void VideoStreamer::SetDestination(string ip_dest, size_t udp_dest) {
     _destination_ip = ip_dest;
     _destination_udp = udp_dest;
-    update_destination();
 }
 
 void VideoStreamer::update_destination() {
     _dest_address.sin_family = AF_INET;
-    _dest_address.sin_addr.s_addr = convert_addr(_destination_ip);
+    _dest_address.sin_addr.s_addr = htonl(convert_addr(_destination_ip));
     _dest_address.sin_port = _destination_udp;
 }
 
@@ -24,9 +26,13 @@ uint32_t VideoStreamer::convert_addr(string ip) {
     ss << ip;
 
     unsigned int buf;
+    char sep;
     for (size_t i = 0; i < 4; i++) {
-        if (i != 0)
-            ss.ignore(1);
+        if (i != 0) {
+            ss >> sep;
+            if (sep!='.')
+                throw std::invalid_argument("Wrong IP-address for destination");
+        }
         ss >> buf;
         out = out << 8;
         out |= buf;

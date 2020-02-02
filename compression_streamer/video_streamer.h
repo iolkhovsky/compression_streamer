@@ -23,6 +23,7 @@ public:
     void SetDestination(string ip_dest, size_t udp_dest);
     void SendFrame(const Mat& frame);
     void SendMessage(string msg);
+    void Init();
 private:
     string _destination_ip;
     size_t _destination_udp;
