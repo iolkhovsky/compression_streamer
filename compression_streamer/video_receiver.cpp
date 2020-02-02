@@ -2,6 +2,18 @@
 
 #include <iostream>
 
+VideoReceiver::ReadRoutine::ReadRoutine(int socket_desc, bool& en)
+    : _desc(socket_desc), _en(en) {
+}
+
+void VideoReceiver::ReadRoutine::operator() () {
+    vector<uchar> buffer(2048);
+    while (_en) {
+        size_t n = recv(_desc, buffer.data(), buffer.size(), MSG_WAITALL);
+        std::cout << "Recieved: " << n << std::endl;
+    }
+}
+
 VideoReceiver::~VideoReceiver() {
     close(_socket_desc);
 }
@@ -34,19 +46,11 @@ void VideoReceiver::Init() {
 
 void VideoReceiver::StartReceive() {
     _enable_loop = true;
-    listen();
+    _thread_ptr = unique_ptr<thread>(new thread(ReadRoutine(_socket_desc, _enable_loop)));
 }
 
 void VideoReceiver::StopReceiver() {
     _enable_loop = false;
-}
-
-void VideoReceiver::listen() {
-    vector<uchar> buffer(2048);
-    while (_enable_loop) {
-        size_t n = recv(_socket_desc, buffer.data(), buffer.size(), MSG_WAITALL);
-        std::cout << "Recieved: " << n << std::endl;
-    }
 }
 
 uint32_t VideoReceiver::convert_addr(string ip) {

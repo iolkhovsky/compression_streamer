@@ -43,6 +43,10 @@ void ClientRoutine() {
     rec.SetAddress("127.0.0.1", 53500);
     rec.Init();
     rec.StartReceive();
+    while(true) {
+        std::this_thread::sleep_for(std::chrono::seconds(2));
+        std::cout << "Client main thread" << endl;
+    }
 }
 
 int main(int argc, char** argv) {
