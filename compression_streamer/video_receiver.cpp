@@ -1,5 +1,11 @@
 #include "video_receiver.h"
 
+#include <iostream>
+
+VideoReceiver::~VideoReceiver() {
+    close(_socket_desc);
+}
+
 VideoReceiver::VideoReceiver(string ip_rec, size_t udp_rec)
     : _receiver_ip(ip_rec), _receiver_udp(udp_rec) {
 }
@@ -9,13 +15,13 @@ void VideoReceiver::SetAddress(string ip_rec, size_t udp_rec) {
     _receiver_udp = udp_rec;
 }
 
-bool VideoReceiver::open_socket() {
+void VideoReceiver::open_socket() {
     _socket_desc = socket(AF_INET, SOCK_DGRAM, 0);
     if (_socket_desc == -1)
         throw std::runtime_error("Cant create socket");
     _in_address.sin_family = AF_INET;
     _in_address.sin_addr.s_addr = htonl(convert_addr(_receiver_ip));;
-    _in_address.sin_port = 52000;
+    _in_address.sin_port = _receiver_udp;
 
     int bind_res = bind(_socket_desc, (struct sockaddr *)&_in_address, sizeof (_in_address));
     if (bind_res == -1)
@@ -27,11 +33,20 @@ void VideoReceiver::Init() {
 }
 
 void VideoReceiver::StartReceive() {
+    _enable_loop = true;
+    listen();
+}
 
+void VideoReceiver::StopReceiver() {
+    _enable_loop = false;
 }
 
 void VideoReceiver::listen() {
-
+    vector<uchar> buffer(2048);
+    while (_enable_loop) {
+        size_t n = recv(_socket_desc, buffer.data(), buffer.size(), MSG_WAITALL);
+        std::cout << "Recieved: " << n << std::endl;
+    }
 }
 
 uint32_t VideoReceiver::convert_addr(string ip) {

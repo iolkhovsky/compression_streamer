@@ -1,6 +1,10 @@
 #include "video_streamer.h"
 #include "paginator.h"
 
+VideoStreamer::~VideoStreamer() {
+    close(_socket_desc);
+}
+
 VideoStreamer::VideoStreamer(string ip_dest, size_t udp_dest)
     : _destination_ip(ip_dest), _destination_udp(udp_dest) {
 }

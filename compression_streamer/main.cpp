@@ -1,5 +1,6 @@
 #include <iostream>
 
+#include "video_receiver.h"
 #include "video_source.h"
 #include "video_streamer.h"
 #include "paginator.h"
@@ -16,11 +17,11 @@ void print_container(Iterator f, Iterator t) {
     cout << endl;
 }
 
-int main(int argc, char** argv) {
+void ServerRoutine() {
     VideoSource webcam(0);
     VideoStreamer streamer;
 
-    streamer.SetDestination("127.0.0.1", 53000);
+    streamer.SetDestination("127.0.0.1", 53500);
     streamer.Init();
 
     while(true) {
@@ -35,6 +36,29 @@ int main(int argc, char** argv) {
 //        if (cv::waitKey(10) == 'q')
 //            break;
     }
+}
 
+void ClientRoutine() {
+    VideoReceiver rec;
+    rec.SetAddress("127.0.0.1", 53500);
+    rec.Init();
+    rec.StartReceive();
+}
+
+int main(int argc, char** argv) {
+    stringstream ss;
+    if (argc > 1) {
+        for (size_t i = 1; i < argc; i++)
+            ss << argv[i] << " ";
+
+        string mode;
+        ss >> mode;
+        if (mode == "server")
+            ServerRoutine();
+        else if (mode == "client")
+            ClientRoutine();
+    } else {
+        ClientRoutine();
+    }
     return 0;
 }

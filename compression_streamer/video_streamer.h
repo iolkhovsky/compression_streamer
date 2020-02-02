@@ -7,6 +7,7 @@
 #include <sys/types.h>
 #include <netinet/in.h>
 #include <stdexcept>
+#include <unistd.h>
 
 #include <opencv2/opencv.hpp>
 #include "stream_timing_stat.h"
@@ -19,6 +20,7 @@ using std::stringstream;
 class VideoStreamer {
 public:
     VideoStreamer() = default;
+    ~VideoStreamer();
     VideoStreamer(string ip_dest, size_t udp_dest);
     void SetDestination(string ip_dest, size_t udp_dest);
     void SendFrame(const Mat& frame);
