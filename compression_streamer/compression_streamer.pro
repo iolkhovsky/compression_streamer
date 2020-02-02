@@ -34,10 +34,11 @@ LIBS += -L/usr/local/lib \
         -lopencv_imgproc \
         -lopencv_imgcodecs
 
-LIBS += -L/usr/lib/x86_64-linux-gnu -lx264
+#LIBS += -L/usr/lib/x86_64-linux-gnu -lx264
 
 HEADERS += \
     stream_timing_stat.h \
     stream_traffic_stat.h \
     video_source.h \
-    video_streamer.h
+    video_streamer.h \
+    paginator.h
