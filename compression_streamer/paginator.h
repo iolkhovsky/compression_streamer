@@ -8,6 +8,7 @@ using std::vector;
 using std::runtime_error;
 using std::distance;
 using std::min;
+using std::next;
 
 template<typename It>
 class IteratorRange {

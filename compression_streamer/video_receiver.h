@@ -16,30 +16,26 @@ using cv::Mat;
 using std::string;
 using std::stringstream;
 
-class VideoStreamer {
+class VideoReceiver {
 public:
-    VideoStreamer() = default;
-    VideoStreamer(string ip_dest, size_t udp_dest);
-    void SetDestination(string ip_dest, size_t udp_dest);
-    void SendFrame(const Mat& frame);
-    void SendMessage(string msg);
+    VideoReceiver() = default;
+    VideoReceiver(string ip_rec, size_t udp_rec);
+    void SetAddress(string ip_rec, size_t udp_rec);
+    void StartReceive();
     void Init();
     size_t GetTraffic();
 private:
-    string _destination_ip;
-    size_t _destination_udp;
+    string _receiver_ip;
+    size_t _receiver_udp;
     int _socket_desc;
     sockaddr_in _in_address;
-    sockaddr_in _dest_address;
     Mat _image_buffer;
     StreamStatistics::TimingStat _timing;
     StreamStatistics::TrafficStat _traffic;
 
     bool open_socket();
-    size_t send_packet(const char *buf, size_t sz);
-    size_t send_packet(uint8_t *buf, size_t sz);
-    void update_destination();
+    void listen();
     static uint32_t convert_addr(string ip);
 };
 
-void operator>>(const Mat& frame, VideoStreamer& streamer);
+void operator>>(VideoReceiver& rec, Mat& frame);

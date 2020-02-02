@@ -19,7 +19,8 @@ SOURCES += \
         stream_timing_stat.cpp \
         stream_traffic_stat.cpp \
         video_source.cpp \
-        video_streamer.cpp
+        video_streamer.cpp \
+    video_receiver.cpp
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
@@ -41,4 +42,5 @@ HEADERS += \
     stream_traffic_stat.h \
     video_source.h \
     video_streamer.h \
-    paginator.h
+    paginator.h \
+    video_receiver.h

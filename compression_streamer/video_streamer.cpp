@@ -1,4 +1,5 @@
 #include "video_streamer.h"
+#include "paginator.h"
 
 VideoStreamer::VideoStreamer(string ip_dest, size_t udp_dest)
     : _destination_ip(ip_dest), _destination_udp(udp_dest) {
@@ -42,7 +43,16 @@ uint32_t VideoStreamer::convert_addr(string ip) {
 }
 
 void VideoStreamer::SendFrame(const Mat& frame) {
+    uint8_t* begin = frame.data;
+    uint8_t* end = begin + frame.total() * frame.elemSize();
+    Paginator<uint8_t*> paginator({begin, end}, 640);
 
+    for (auto &page: paginator) {
+        const vector<uint8_t> packet(page.begin(), page.end());
+        const char* tx_buf = reinterpret_cast<const char *>(packet.data());
+        send_packet(tx_buf, packet.size());
+        _traffic.AddTransaction(packet.size());
+    }
 }
 
 void VideoStreamer::SendMessage(const string msg) {
@@ -66,4 +76,17 @@ bool VideoStreamer::open_socket() {
 size_t VideoStreamer::send_packet(const char *buf, size_t sz) {
     size_t res = sendto(_socket_desc, buf, sz, MSG_CONFIRM, (struct sockaddr *)&_dest_address, sizeof (_dest_address));
     return res;
+}
+
+size_t VideoStreamer::send_packet(uint8_t *buf, size_t sz) {
+    size_t res = sendto(_socket_desc, buf, sz, MSG_CONFIRM, (struct sockaddr *)&_dest_address, sizeof (_dest_address));
+    return res;
+}
+
+size_t VideoStreamer::GetTraffic() {
+    return _traffic.GetAverageTraffic();
+}
+
+void operator>>(const Mat& frame, VideoStreamer& streamer) {
+    streamer.SendFrame(frame);
 }
