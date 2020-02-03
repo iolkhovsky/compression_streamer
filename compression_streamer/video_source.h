@@ -27,6 +27,7 @@ public:
     Mat Read();
     double GetFps() const;
     double GetTraffic();
+    void EnableCycle();
 
 private:
     VideoCapture _cap;

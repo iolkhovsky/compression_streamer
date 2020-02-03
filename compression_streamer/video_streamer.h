@@ -31,6 +31,7 @@ public:
     void Init();
     void SetCompression(bool en);
     size_t GetTraffic();
+    void SetQuality(int q);
 private:
     string _destination_ip;
     size_t _destination_udp;

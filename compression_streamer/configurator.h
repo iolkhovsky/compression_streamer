@@ -2,11 +2,16 @@
 
 #include <string>
 #include <sstream>
+#include <vector>
+#include <map>
 
 using std::string;
 using std::stringstream;
+using std::vector;
+using std::map;
 
 class Configurator {
+public:
     enum class GlobalModes {
         server,
         client
@@ -15,7 +20,6 @@ class Configurator {
         webcamera,
         videofile
     };
-public:
     Configurator(int argc, char** argv);
     // common
     GlobalModes GetMode() const;
@@ -29,13 +33,15 @@ public:
     int GetCompressionQuality() const;
     size_t GetPacketSize() const;
 private:
-    GlobalModes _mode;
-    StreamSources _source;
-    string _ip;
-    size_t _udp;
-    bool _compression_en;
-    int _compression_coeff;
-    size_t _packet_size;
-    string _video_path;
-    size_t _webcam_id;
+    mutable GlobalModes _mode;
+    mutable StreamSources _source;
+    mutable string _ip;
+    mutable size_t _udp;
+    mutable bool _compression_en;
+    mutable int _compression_coeff;
+    mutable size_t _packet_size;
+    mutable string _video_path;
+    mutable size_t _webcam_id;
+
+    map<string, string> _expressions;
 };

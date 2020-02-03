@@ -18,37 +18,35 @@ void print_container(Iterator f, Iterator t) {
     cout << endl;
 }
 
-void ServerRoutine(bool compression=true) {
-    VideoSource webcam(0);
-//    VideoSource webcam("/home/igor/temp/2019-04-02-11-45-56-tv_11_tnf.avi");
-    VideoStreamer streamer;
+void ServerRoutine(Configurator& conf) {
+    VideoSource src;
+    if (conf.GetSource() == Configurator::StreamSources::webcamera) {
+        src.Open(conf.GetWebcamId());
+    } else if (conf.GetSource() == Configurator::StreamSources::videofile) {
+        src.Open(conf.GetVideoPath());
+        src.EnableCycle();
+    }
 
-    streamer.SetDestination("127.0.0.1", 53500);
+    VideoStreamer streamer;
+    streamer.SetDestination(conf.GetIp(), conf.GetUdp());
     streamer.Init();
-    streamer.SetCompression(compression);
+    streamer.SetCompression(conf.GetCompressionFlag());
+    streamer.SetQuality(conf.GetCompressionQuality());
 
     while(true) {
         Mat buffer;
-        webcam >> buffer;
+        src >> buffer;
         buffer >> streamer;
 
-//        VideoCodec codec;
-
-//        imshow("Encoded/Decoded", codec.decode(codec.encode(buffer)));
-//        if (cv::waitKey(10) == 'q')
-//            break;
-
-
-        std::cout << "Frame rate: " << webcam.GetFps() << endl;
-        std::cout << "Source traffic (Mb/s):  " << StreamStatistics::convert_traffic(webcam.GetTraffic(), StreamStatistics::TrafficConversion::Byte2MegaBit) << endl;
+        std::cout << "Frame rate: " << src.GetFps() << endl;
+        std::cout << "Source traffic (Mb/s):  " << StreamStatistics::convert_traffic(src.GetTraffic(), StreamStatistics::TrafficConversion::Byte2MegaBit) << endl;
         std::cout << "Transmitter traffic (Mb/s): " << StreamStatistics::convert_traffic(streamer.GetTraffic(), StreamStatistics::TrafficConversion::Byte2MegaBit) << endl;
-
     }
 }
 
-void ClientRoutine() {
+void ClientRoutine(Configurator& conf) {
     VideoReceiver receiver;
-    receiver.SetAddress("127.0.0.1", 53500);
+    receiver.SetAddress(conf.GetIp(), conf.GetUdp());
     receiver.Init();
     receiver.StartReceive();
     Mat rec_frame;
@@ -62,26 +60,12 @@ void ClientRoutine() {
 }
 
 int main(int argc, char** argv) {
-//    Configurator config(argc, argv);
+    Configurator config(argc, argv);
 
-//    cout << "Complete" << endl;
-
-    stringstream ss;
-    if (argc > 1) {
-        for (size_t i = 1; i < argc; i++)
-            ss << argv[i] << " ";
-
-        string mode;
-        ss >> mode;
-        if (mode == "server") {
-            bool compression = false;
-            if (argc > 2)
-                ss >> compression;
-            ServerRoutine(compression);
-        } else if (mode == "client")
-            ClientRoutine();
+    if (config.GetMode() == Configurator::GlobalModes::server) {
+        ServerRoutine(config);
     } else {
-        ClientRoutine();
+        ClientRoutine(config);
     }
     return 0;
 }

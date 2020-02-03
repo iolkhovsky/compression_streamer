@@ -95,6 +95,10 @@ bool VideoStreamer::open_socket() {
         throw std::runtime_error("Cant bind socket");
 }
 
+void VideoStreamer::SetQuality(int q) {
+    _codec.set_quality(q);
+}
+
 size_t VideoStreamer::send_packet(const char *buf, size_t sz) {
     size_t res = sendto(_socket_desc, buf, sz, MSG_WAITALL, (struct sockaddr *)&_dest_address, sizeof (_dest_address));
     std::this_thread::sleep_for(std::chrono::nanoseconds(100));

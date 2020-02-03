@@ -12,10 +12,12 @@ using cv::imdecode;
 
 class VideoCodec {
 public:
-    VideoCodec() = default;
+    VideoCodec();
     vector<uint8_t> encode(const Mat& image);
     Mat decode(const vector<uint8_t> compressed);
+    void set_quality(int q);
 private:
     vector<uint8_t> _encoded_buf;
     Mat _src_image;
+    int _quality;
 };

@@ -15,6 +15,10 @@ double VideoSource::GetTraffic() {
     return _traffic.GetAverageTraffic();
 }
 
+void VideoSource::EnableCycle() {
+
+}
+
 void operator>>(VideoSource &src, Mat& dst) {
     dst = src.Read();
 }
