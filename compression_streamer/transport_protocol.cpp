@@ -4,17 +4,12 @@
 namespace Protocol {
 
 
-Manager::Manager() {
-    _rx_buffer.payload.resize(1920*1080*4);
-    _expected_size = 0;
-}
-
 vector<vector<uint8_t>> Manager::make_packets(FrameDesc tx) {
     vector<vector<uint8_t>> out;
 
     auto begin = tx.payload.begin();
     auto end = begin + tx.payload.size();
-    Paginator<vector<uint8_t>::iterator> paginator({begin, end}, 640);
+    Paginator<vector<uint8_t>::iterator> paginator({begin, end}, 1280);
 
     size_t offset = 0;
     size_t packet_id = 0;
@@ -22,14 +17,32 @@ vector<vector<uint8_t>> Manager::make_packets(FrameDesc tx) {
         size_t video_data_size = page.get_size();
         size_t header_size = sizeof(Header);
         vector<uint8_t> packet(video_data_size + header_size);
-        Header* preambule = reinterpret_cast<Header*>(packet.data());
-
-        preambule->frame_id = _frame_counter;
-        preambule->image_x_size = tx.img_sz_x;
-        preambule->image_y_size = tx.img_sz_y;
-        preambule->packet_id = packet_id++;
-        preambule->packet_offset = offset;
-        preambule->pixel_size = tx.pixel_size;
+//        Header* preambule = static_cast<Header*>(static_cast<void*>(packet.data()));
+        packet[0] = _frame_counter & 0xff;
+        packet[1] = (_frame_counter >> 8) & 0xff;
+        packet[2] = packet_id & 0xff;
+        packet[3] = (packet_id >> 8) & 0xff;
+        packet[4] = offset & 0xff;
+        packet[5] = (offset >> 8) & 0xff;
+        packet[6] = (offset >> 16) & 0xff;
+        packet[7] = (offset >> 25) & 0xff;
+        packet[8] = tx.img_sz_x & 0xff;
+        packet[9] = (tx.img_sz_x >> 8) & 0xff;
+        packet[10] = tx.img_sz_y & 0xff;
+        packet[11] = (tx.img_sz_y >> 8) & 0xff;
+        packet[12] = tx.pixel_size & 0xff;
+        packet[13] = (tx.pixel_size >> 8) & 0xff;
+        packet[14] = tx.compression;
+        packet[15] = tx.compressed_size & 0xff;
+        packet[16] = (tx.compressed_size >> 8) & 0xff;
+        packet[17] = (tx.compressed_size >> 16) & 0xff;
+        packet[18] = (tx.compressed_size >> 25) & 0xff;
+//        preambule->frame_id = _frame_counter;
+//        preambule->image_x_size = tx.img_sz_x;
+//        preambule->image_y_size = tx.img_sz_y;
+//        preambule->packet_id = packet_id++;
+//        preambule->packet_offset = offset;
+//        preambule->pixel_size = tx.pixel_size;
 
         std::copy(page.begin(), page.end(), next(packet.begin(), sizeof(Header)));
         offset += page.get_size();
@@ -42,32 +55,72 @@ vector<vector<uint8_t>> Manager::make_packets(FrameDesc tx) {
 
 bool Manager::handle_packet(vector<uint8_t> payload) {
     bool ready_frame = false;
-    Header* preambule = reinterpret_cast<Header*>(payload.data());
+    Header preambule;
 
-    if (preambule->frame_id != _rx_buffer.frame_id) {
-        if (_expected_size == _rx_buffer.pixel_size * _rx_buffer.img_sz_x * _rx_buffer.img_sz_y) {
-            _out_buffer = std::move(_rx_buffer);
-            _out_buffer.payload.resize(_expected_size);
-            _expected_size = 0;
-            _rx_buffer.payload.resize(1920*1080*4);
-            ready_frame = true;
-        } else {
-            _expected_size = 0;
-            ready_frame = false;
+    preambule.frame_id = payload[0] + (static_cast<uint16_t>(payload[1]) << 8);
+    preambule.packet_id = payload[2] + (static_cast<uint16_t>(payload[3]) << 8);
+    preambule.packet_offset = payload[4] + (static_cast<uint16_t>(payload[5]) << 8)
+            + (static_cast<uint16_t>(payload[6]) << 16) + (static_cast<uint16_t>(payload[7]) << 24);
+    preambule.image_x_size = payload[8] + (static_cast<uint16_t>(payload[9]) << 8);
+    preambule.image_y_size = payload[10] + (static_cast<uint16_t>(payload[11]) << 8);
+    preambule.pixel_size = payload[12] + (static_cast<uint16_t>(payload[13]) << 8);
+    preambule.compression = payload[14];
+    preambule.compressed_size = payload[15] + (static_cast<uint16_t>(payload[16]) << 8)
+            + (static_cast<uint16_t>(payload[17]) << 16) + (static_cast<uint16_t>(payload[18]) << 24);
+
+    if (preambule.compression) {
+        size_t target_size = preambule.compressed_size;
+
+        if (preambule.frame_id != _rx_buffer.frame_id) {
+            if (_rx_buffer.payload.size()) {
+                _out_buffer = std::move(_rx_buffer);
+                ready_frame = true;
+            }
         }
+
+        if (target_size != _rx_buffer.payload.size())
+            _rx_buffer.payload.resize(target_size);
+        if (target_size == 0)
+            return false;
+
+        std::copy(next(payload.begin(), sizeof(Header)), payload.end(), next(_rx_buffer.payload.begin(), preambule.packet_offset));
+        _rx_buffer.img_sz_x = preambule.image_x_size;
+        _rx_buffer.img_sz_y = preambule.image_y_size;
+        _rx_buffer.frame_id = preambule.frame_id;
+        _rx_buffer.pixel_size = preambule.pixel_size;
+        _rx_buffer.compression = preambule.compression;
+        _rx_buffer.compressed_size = preambule.compressed_size;
+
+        return ready_frame;
+    } else {
+        size_t target_size = preambule.pixel_size * preambule.image_x_size * preambule.image_y_size;
+
+        if (preambule.frame_id != _rx_buffer.frame_id) {
+            if (_rx_buffer.payload.size()) {
+                _out_buffer = std::move(_rx_buffer);
+                ready_frame = true;
+            }
+        }
+
+        if (target_size != _rx_buffer.payload.size())
+            _rx_buffer.payload.resize(target_size);
+        if (target_size == 0)
+            return false;
+
+        std::copy(next(payload.begin(), sizeof(Header)), payload.end(), next(_rx_buffer.payload.begin(), preambule.packet_offset));
+        _rx_buffer.img_sz_x = preambule.image_x_size;
+        _rx_buffer.img_sz_y = preambule.image_y_size;
+        _rx_buffer.frame_id = preambule.frame_id;
+        _rx_buffer.pixel_size = preambule.pixel_size;
+        _rx_buffer.compression = preambule.compression;
+        _rx_buffer.compressed_size = preambule.compressed_size;
+
+        return ready_frame;
     }
-
-    std::copy(next(payload.begin(), sizeof(Header)), payload.end(), next(_rx_buffer.payload.begin(), preambule->packet_offset));
-    _rx_buffer.img_sz_x = preambule->image_x_size;
-    _rx_buffer.img_sz_y = preambule->image_y_size;
-    _rx_buffer.frame_id = preambule->frame_id;
-    _expected_size += payload.size() - sizeof(Header) + preambule->packet_offset;
-
-    return ready_frame;
 }
 
 FrameDesc Manager::read_data_chunk() {
-    return _out_buffer;
+    return std::move(_out_buffer);
 }
 
 

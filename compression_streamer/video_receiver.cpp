@@ -10,16 +10,16 @@ void VideoReceiver::ReadRoutine::operator() () {
     Protocol::FrameDesc frame_info;
     Protocol::Manager protocol;
     while (_en) {
-        vector<uint8_t> buffer(2048);
+        vector<uint8_t> buffer(36000);
         size_t n = recv(_desc, buffer.data(), buffer.size(), MSG_WAITALL);
         buffer.resize(n);
         bool _new_frame = protocol.handle_packet(buffer);
         if (_new_frame) {
-            std::cout << "Recieved Frame: " << protocol.read_data_chunk().frame_id << " "
-                      << protocol.read_data_chunk().img_sz_x << "x" << protocol.read_data_chunk().img_sz_y << " " <<
-                      protocol.read_data_chunk().payload.size() << std::endl;
+//            std::cout << "Recieved Frame: " << protocol.read_data_chunk().frame_id << " "
+//                      << protocol.read_data_chunk().img_sz_x << "x" << protocol.read_data_chunk().img_sz_y << " " <<
+//                      protocol.read_data_chunk().payload.size() << std::endl;
             lock_guard<mutex> locker(_m);
-            _fifo.push(protocol.read_data_chunk());
+            _fifo.push(std::move(protocol.read_data_chunk()));
         }
     }
 }
@@ -92,6 +92,7 @@ Mat VideoReceiver::ReadFrame() {
     size_t fifo_sz = 0;
     Protocol::FrameDesc desc;
     bool ready=false;
+    int type = CV_8UC4;
     while (!ready) {
         {
             lock_guard<mutex> locker(_mutex);
@@ -102,26 +103,28 @@ Mat VideoReceiver::ReadFrame() {
                 ready = true;
             }
         }
-        if (ready) {
-            size_t bpp = desc.payload.size() / (desc.img_sz_x * desc.img_sz_y);
-            int type = CV_8UC4;
-            switch (bpp) {
-                case 1: type = CV_8UC1; break;
-                case 3: type = CV_8UC3; break;
-                case 4: type = CV_8UC4; break;
-                default:
-                    throw runtime_error("Unexpected channels count in frame");
-            }
-
-            return Mat(desc.img_sz_y, desc.img_sz_x, type, desc.payload.data());
-        } else {
-            ready = false;
-            std::this_thread::sleep_for(std::chrono::milliseconds(5));
-        }
+        if (!ready)
+            std::this_thread::sleep_for(std::chrono::milliseconds(1));
     }
+    _traffic.AddTransaction(desc.payload.size());
+    Mat out_frame;
+    if (desc.compression) {
+        out_frame = _codec.decode(desc.payload);
+    } else {
+        switch (desc.pixel_size) {
+            case 1: type = CV_8UC1; break;
+            case 2: type = CV_8UC2; break;
+            case 3: type = CV_8UC3; break;
+            case 4: type = CV_8UC4; break;
+            default: throw runtime_error("Unexpected pixel size"); break;
+        }
+        Mat buf = Mat(desc.img_sz_y, desc.img_sz_x, type, desc.payload.data());
+        out_frame = buf.clone();
+    }
+    return out_frame;
 }
 
 VideoReceiver& operator>>(VideoReceiver& rec, Mat& frame) {
-    frame = rec.ReadFrame();
+    frame = std::move(rec.ReadFrame());
     return rec;
 }

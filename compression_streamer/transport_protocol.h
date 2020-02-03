@@ -15,6 +15,8 @@ struct Header {
     uint16_t image_x_size;
     uint16_t image_y_size;
     uint16_t pixel_size;
+    uint8_t compression;
+    size_t compressed_size;
 };
 
 struct FrameDesc {
@@ -22,32 +24,35 @@ struct FrameDesc {
     size_t img_sz_x;
     size_t img_sz_y;
     size_t pixel_size;
+    uint8_t compression;
+    size_t compressed_size;
     vector<uint8_t> payload;
 
     FrameDesc() = default;
+    FrameDesc(FrameDesc& other) = default;
     FrameDesc(FrameDesc&& other) {
         frame_id = other.frame_id;
         img_sz_x = other.img_sz_x;
         img_sz_y = other.img_sz_y;
+        pixel_size = other.pixel_size;
+        compression = other.compression;
+        compressed_size = other.compressed_size;
         payload = move(other.payload);
-    }
-    FrameDesc(FrameDesc& other) {
-        frame_id = other.frame_id;
-        img_sz_x = other.img_sz_x;
-        img_sz_y = other.img_sz_y;
-        payload = other.payload;
     }
     void operator=(FrameDesc&& other) {
         frame_id = other.frame_id;
         img_sz_x = other.img_sz_x;
         img_sz_y = other.img_sz_y;
+        pixel_size = other.pixel_size;
+        compression = other.compression;
+        compressed_size = other.compressed_size;
         payload = move(other.payload);
     }
 };
 
 class Manager {
 public:
-    Manager();
+    Manager() = default;
     vector<vector<uint8_t>> make_packets(FrameDesc tx);
     bool handle_packet(vector<uint8_t> payload);
     FrameDesc read_data_chunk();

@@ -8,11 +8,13 @@
 #include <netinet/in.h>
 #include <stdexcept>
 #include <unistd.h>
+#include <thread>
 
 #include <opencv2/opencv.hpp>
 #include "stream_timing_stat.h"
 #include "stream_traffic_stat.h"
 #include "transport_protocol.h"
+#include "video_codec.h"
 
 using cv::Mat;
 using std::string;
@@ -27,6 +29,7 @@ public:
     void SendFrame(const Mat& frame);
     void SendMessage(string msg);
     void Init();
+    void SetCompression(bool en);
     size_t GetTraffic();
 private:
     string _destination_ip;
@@ -38,6 +41,8 @@ private:
     StreamStatistics::TimingStat _timing;
     StreamStatistics::TrafficStat _traffic;
     Protocol::Manager _protocol;
+    bool _compression;
+    VideoCodec _codec;
 
     bool open_socket();
     size_t send_packet(const char *buf, size_t sz);

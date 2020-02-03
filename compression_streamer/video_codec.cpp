@@ -11,6 +11,6 @@ vector<uint8_t> VideoCodec::encode(const Mat& image) {
 }
 
 Mat VideoCodec::decode(const vector<uint8_t> compressed) {
-    _src_image = imdecode(_encoded_buf, 1);
-    return _src_image;
+    _encoded_buf = compressed;
+    return imdecode(_encoded_buf, 1);
 }

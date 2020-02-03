@@ -20,6 +20,7 @@
 #include "stream_traffic_stat.h"
 #include "transport_protocol.h"
 #include "synchronized.h"
+#include "video_codec.h"
 
 using cv::Mat;
 using std::string;
@@ -61,6 +62,7 @@ private:
     unique_ptr<thread> _thread_ptr;
     queue<Protocol::FrameDesc> _fifo;
     mutex _mutex;
+    VideoCodec _codec;
 
     void open_socket();
     static uint32_t convert_addr(string ip);

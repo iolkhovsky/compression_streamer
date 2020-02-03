@@ -14,6 +14,10 @@ void VideoStreamer::Init() {
     update_destination();
 }
 
+void VideoStreamer::SetCompression(bool en) {
+    _compression = en;
+}
+
 void VideoStreamer::SetDestination(string ip_dest, size_t udp_dest) {
     _destination_ip = ip_dest;
     _destination_udp = udp_dest;
@@ -48,12 +52,24 @@ uint32_t VideoStreamer::convert_addr(string ip) {
 
 void VideoStreamer::SendFrame(const Mat& frame) {
     Protocol::FrameDesc frame_info;
-    frame_info.payload = vector<uint8_t>(frame.data, frame.data + frame.total() * frame.elemSize());
+
     frame_info.img_sz_x = frame.cols;
     frame_info.img_sz_y = frame.rows;
     frame_info.pixel_size = frame.elemSize();
-    auto packs = _protocol.make_packets(frame_info);
 
+    if (_compression) {
+        frame_info.compression = 1;
+        vector<uint8_t> compressed_frame = _codec.encode(frame);
+        frame_info.compressed_size = compressed_frame.size();
+        frame_info.payload = vector<uint8_t>(compressed_frame.begin(), compressed_frame.end());
+//        _traffic.AddTransaction(frame_info.compressed_size);
+    } else {
+        frame_info.compression = 0;
+        frame_info.payload = vector<uint8_t>(frame.data, frame.data + frame.total() * frame.elemSize());
+//         _traffic.AddTransaction(frame.total() * frame.elemSize());
+    }
+
+    auto packs = _protocol.make_packets(frame_info);
     for (auto &pack: packs) {
         const char* tx_buf = reinterpret_cast<const char *>(pack.data());
         send_packet(tx_buf, pack.size());
@@ -80,12 +96,14 @@ bool VideoStreamer::open_socket() {
 }
 
 size_t VideoStreamer::send_packet(const char *buf, size_t sz) {
-    size_t res = sendto(_socket_desc, buf, sz, MSG_CONFIRM, (struct sockaddr *)&_dest_address, sizeof (_dest_address));
+    size_t res = sendto(_socket_desc, buf, sz, MSG_WAITALL, (struct sockaddr *)&_dest_address, sizeof (_dest_address));
+    std::this_thread::sleep_for(std::chrono::nanoseconds(100));
     return res;
 }
 
 size_t VideoStreamer::send_packet(uint8_t *buf, size_t sz) {
-    size_t res = sendto(_socket_desc, buf, sz, MSG_CONFIRM, (struct sockaddr *)&_dest_address, sizeof (_dest_address));
+    size_t res = sendto(_socket_desc, buf, sz, MSG_WAITALL, (struct sockaddr *)&_dest_address, sizeof (_dest_address));
+    std::this_thread::sleep_for(std::chrono::nanoseconds(100));
     return res;
 }
 
