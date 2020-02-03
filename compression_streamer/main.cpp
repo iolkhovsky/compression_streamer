@@ -4,7 +4,7 @@
 #include "video_source.h"
 #include "video_streamer.h"
 #include "paginator.h"
-
+#include "video_codec.h"
 
 using namespace std;
 
@@ -44,8 +44,11 @@ void ClientRoutine() {
     rec.Init();
     rec.StartReceive();
     while(true) {
-        std::this_thread::sleep_for(std::chrono::seconds(2));
-        std::cout << "Client main thread" << endl;
+        Mat rec_frame;
+        rec >> rec_frame;
+        imshow("Receive buffer", rec_frame);
+        if (cv::waitKey(10) == 'q')
+            break;
     }
 }
 

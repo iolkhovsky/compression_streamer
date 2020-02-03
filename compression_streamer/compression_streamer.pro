@@ -18,6 +18,8 @@ SOURCES += \
         main.cpp \
         stream_timing_stat.cpp \
         stream_traffic_stat.cpp \
+    transport_protocol.cpp \
+    video_codec.cpp \
         video_source.cpp \
         video_streamer.cpp \
     video_receiver.cpp
@@ -40,6 +42,9 @@ LIBS += -L/usr/local/lib \
 HEADERS += \
     stream_timing_stat.h \
     stream_traffic_stat.h \
+    synchronized.h \
+    transport_protocol.h \
+    video_codec.h \
     video_source.h \
     video_streamer.h \
     paginator.h \

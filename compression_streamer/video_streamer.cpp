@@ -47,15 +47,17 @@ uint32_t VideoStreamer::convert_addr(string ip) {
 }
 
 void VideoStreamer::SendFrame(const Mat& frame) {
-    uint8_t* begin = frame.data;
-    uint8_t* end = begin + frame.total() * frame.elemSize();
-    Paginator<uint8_t*> paginator({begin, end}, 640);
+    Protocol::FrameDesc frame_info;
+    frame_info.payload = vector<uint8_t>(frame.data, frame.data + frame.total() * frame.elemSize());
+    frame_info.img_sz_x = frame.cols;
+    frame_info.img_sz_y = frame.rows;
+    frame_info.pixel_size = frame.elemSize();
+    auto packs = _protocol.make_packets(frame_info);
 
-    for (auto &page: paginator) {
-        const vector<uint8_t> packet(page.begin(), page.end());
-        const char* tx_buf = reinterpret_cast<const char *>(packet.data());
-        send_packet(tx_buf, packet.size());
-        _traffic.AddTransaction(packet.size());
+    for (auto &pack: packs) {
+        const char* tx_buf = reinterpret_cast<const char *>(pack.data());
+        send_packet(tx_buf, pack.size());
+        _traffic.AddTransaction(pack.size());
     }
 }
 

@@ -12,6 +12,7 @@
 #include <opencv2/opencv.hpp>
 #include "stream_timing_stat.h"
 #include "stream_traffic_stat.h"
+#include "transport_protocol.h"
 
 using cv::Mat;
 using std::string;
@@ -36,6 +37,7 @@ private:
     Mat _image_buffer;
     StreamStatistics::TimingStat _timing;
     StreamStatistics::TrafficStat _traffic;
+    Protocol::Manager _protocol;
 
     bool open_socket();
     size_t send_packet(const char *buf, size_t sz);

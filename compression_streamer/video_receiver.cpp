@@ -2,15 +2,25 @@
 
 #include <iostream>
 
-VideoReceiver::ReadRoutine::ReadRoutine(int socket_desc, bool& en)
-    : _desc(socket_desc), _en(en) {
+VideoReceiver::ReadRoutine::ReadRoutine(int socket_desc, bool& en, queue<Protocol::FrameDesc>& fifo, mutex &m)
+    : _desc(socket_desc), _en(en), _fifo(fifo), _m(m) {
 }
 
 void VideoReceiver::ReadRoutine::operator() () {
-    vector<uchar> buffer(2048);
+    Protocol::FrameDesc frame_info;
+    Protocol::Manager protocol;
     while (_en) {
+        vector<uint8_t> buffer(2048);
         size_t n = recv(_desc, buffer.data(), buffer.size(), MSG_WAITALL);
-        std::cout << "Recieved: " << n << std::endl;
+        buffer.resize(n);
+        bool _new_frame = protocol.handle_packet(buffer);
+        if (_new_frame) {
+            std::cout << "Recieved Frame: " << protocol.read_data_chunk().frame_id << " "
+                      << protocol.read_data_chunk().img_sz_x << "x" << protocol.read_data_chunk().img_sz_y << " " <<
+                      protocol.read_data_chunk().payload.size() << std::endl;
+            lock_guard<mutex> locker(_m);
+            _fifo.push(protocol.read_data_chunk());
+        }
     }
 }
 
@@ -46,7 +56,7 @@ void VideoReceiver::Init() {
 
 void VideoReceiver::StartReceive() {
     _enable_loop = true;
-    _thread_ptr = unique_ptr<thread>(new thread(ReadRoutine(_socket_desc, _enable_loop)));
+    _thread_ptr = unique_ptr<thread>(new thread(ReadRoutine(_socket_desc, _enable_loop, _fifo, _mutex)));
 }
 
 void VideoReceiver::StopReceiver() {
@@ -78,7 +88,40 @@ size_t VideoReceiver::GetTraffic() {
     return _traffic.GetAverageTraffic();
 }
 
+Mat VideoReceiver::ReadFrame() {
+    size_t fifo_sz = 0;
+    Protocol::FrameDesc desc;
+    bool ready=false;
+    while (!ready) {
+        {
+            lock_guard<mutex> locker(_mutex);
+            fifo_sz = _fifo.size();
+            if (fifo_sz) {
+                desc = std::move(_fifo.front());
+                _fifo.pop();
+                ready = true;
+            }
+        }
+        if (ready) {
+            size_t bpp = desc.payload.size() / (desc.img_sz_x * desc.img_sz_y);
+            int type = CV_8UC4;
+            switch (bpp) {
+                case 1: type = CV_8UC1; break;
+                case 3: type = CV_8UC3; break;
+                case 4: type = CV_8UC4; break;
+                default:
+                    throw runtime_error("Unexpected channels count in frame");
+            }
 
-void operator>>(VideoReceiver& rec, Mat& frame) {
+            return Mat(desc.img_sz_y, desc.img_sz_x, type, desc.payload.data());
+        } else {
+            ready = false;
+            std::this_thread::sleep_for(std::chrono::milliseconds(5));
+        }
+    }
+}
 
+VideoReceiver& operator>>(VideoReceiver& rec, Mat& frame) {
+    frame = rec.ReadFrame();
+    return rec;
 }
