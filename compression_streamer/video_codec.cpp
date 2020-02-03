@@ -4,6 +4,7 @@ vector<uint8_t> VideoCodec::encode(const Mat& image) {
     _src_image = image;
     vector<int> compression_params;
     compression_params.push_back(cv::IMWRITE_JPEG_QUALITY);
+    compression_params.push_back(95);
 
     imencode(".jpg", _src_image, _encoded_buf, compression_params);
 

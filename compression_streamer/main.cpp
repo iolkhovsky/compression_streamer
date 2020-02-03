@@ -5,6 +5,7 @@
 #include "video_streamer.h"
 #include "paginator.h"
 #include "video_codec.h"
+#include "configurator.h"
 
 using namespace std;
 
@@ -19,6 +20,7 @@ void print_container(Iterator f, Iterator t) {
 
 void ServerRoutine(bool compression=true) {
     VideoSource webcam(0);
+//    VideoSource webcam("/home/igor/temp/2019-04-02-11-45-56-tv_11_tnf.avi");
     VideoStreamer streamer;
 
     streamer.SetDestination("127.0.0.1", 53500);
@@ -60,6 +62,10 @@ void ClientRoutine() {
 }
 
 int main(int argc, char** argv) {
+//    Configurator config(argc, argv);
+
+//    cout << "Complete" << endl;
+
     stringstream ss;
     if (argc > 1) {
         for (size_t i = 1; i < argc; i++)
@@ -75,7 +81,6 @@ int main(int argc, char** argv) {
         } else if (mode == "client")
             ClientRoutine();
     } else {
-//        ServerRoutine(true);
         ClientRoutine();
     }
     return 0;

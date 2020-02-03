@@ -23,9 +23,9 @@ double TrafficStat::GetAverageTraffic() {
 }
 
 void TrafficStat::add_event(size_t data_sz, timestamp stamp) {
-    check_fifo();
     _events.push({data_sz, stamp});
     _data_amount_acc += data_sz;
+    check_fifo();
 }
 
 size_t TrafficStat::usecs_to_tail() const {

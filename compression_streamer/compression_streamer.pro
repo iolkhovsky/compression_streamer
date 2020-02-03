@@ -15,6 +15,7 @@ DEFINES += QT_DEPRECATED_WARNINGS
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
+    configurator.cpp \
         main.cpp \
         stream_timing_stat.cpp \
         stream_traffic_stat.cpp \
@@ -40,6 +41,7 @@ LIBS += -L/usr/local/lib \
 #LIBS += -L/usr/lib/x86_64-linux-gnu -lx264
 
 HEADERS += \
+    configurator.h \
     stream_timing_stat.h \
     stream_traffic_stat.h \
     synchronized.h \
