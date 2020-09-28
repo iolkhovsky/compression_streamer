@@ -1,6 +1,6 @@
 #include "stream_timing_stat.h"
 
-namespace StreamStatistics {
+namespace statistics {
 
 void TimingStat::PushEvent() {
     push_timestamp(steady_clock::now());

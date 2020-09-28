@@ -15,41 +15,45 @@ using std::stringstream;
 using std::deque;
 using std::chrono::steady_clock;
 
-class VideoSource {
-    using timestamp = steady_clock::time_point;
+namespace streamer {
 
-public:
-    VideoSource() = default;
+    class VideoSource {
+        using timestamp = steady_clock::time_point;
+
+    public:
+        VideoSource() = default;
+        template<typename T>
+        VideoSource(T id);
+        template<typename T>
+        void Open(T id);
+        Mat Read();
+        double GetFps() const;
+        double GetTraffic();
+
+    private:
+        VideoCapture _cap;
+        string _id;
+        Mat _buffer;
+        statistics::TimingStat _timing;
+        statistics::TrafficStat _traffic;
+    };
+
+    void operator>>(VideoSource &src, Mat& dst);
+
     template<typename T>
-    VideoSource(T id);
-    template<typename T>
-    void Open(T id);
-    Mat Read();
-    double GetFps() const;
-    double GetTraffic();
-
-private:
-    VideoCapture _cap;
-    string _id;
-    Mat _buffer;
-    StreamStatistics::TimingStat _timing;
-    StreamStatistics::TrafficStat _traffic;
-};
-
-void operator>>(VideoSource &src, Mat& dst);
-
-template<typename T>
-VideoSource::VideoSource(T id) {
-    Open(id);
-}
-
-template<typename T>
-void VideoSource::Open(T id) {
-    if (_cap.open(id)) {
-        stringstream ss;
-        ss << id;
-        _id = ss.str();
-    } else {
-        throw std::invalid_argument("Invalid source (file path or web-camera id)");
+    VideoSource::VideoSource(T id) {
+        Open(id);
     }
+
+    template<typename T>
+    void VideoSource::Open(T id) {
+        if (_cap.open(id)) {
+            stringstream ss;
+            ss << id;
+            _id = ss.str();
+        } else {
+            throw std::invalid_argument("Invalid source (file path or web-camera id)");
+        }
+    }
+
 }
