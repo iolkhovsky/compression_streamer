@@ -30,6 +30,11 @@ namespace streamer {
         int GetCompressionQuality() const;
         size_t GetPacketSize() const;
         bool GetDebug() const;
+
+        string GetShmem() const;
+        string GetSemaphore() const;
+        string GetMQueue() const;
+        bool GetUseShmem() const;
     private:
         GlobalModes _mode;
         StreamSources _source;
@@ -40,6 +45,10 @@ namespace streamer {
         string _video_path;
         size_t _webcam_id;
         bool _debug;
+        bool _use_shmem;
+        string _shmem_name;
+        string _sem_name;
+        string _mq_name;
     };
 
     std::ostream& operator<<(std::ostream& os, const Configurator& conf);

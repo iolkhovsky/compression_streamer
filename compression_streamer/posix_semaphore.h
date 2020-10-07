@@ -7,7 +7,6 @@ namespace ipc {
     class PosixSemaphore {
     public:
         PosixSemaphore(std::string name);
-        ~PosixSemaphore();
 
         void lock() const;
         void unlock() const;

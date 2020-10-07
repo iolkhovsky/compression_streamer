@@ -10,7 +10,8 @@
 namespace ipc {
     PosixShmem::PosixShmem(std::string name, int size) {
         _size = size;
-        _fd = shm_open(name.c_str(), O_RDWR | O_CREAT, S_IRWXO);
+        //_fd = shm_open(name.c_str(), O_RDWR | O_CREAT | O_EXCL, S_IRWXO);
+        _fd = shm_open(name.c_str(), O_CREAT | O_RDWR, 0666);
         if (_fd <= 0)
             throw std::runtime_error("Invalid shmem file descriptor");
         ftruncate(_fd, _size);

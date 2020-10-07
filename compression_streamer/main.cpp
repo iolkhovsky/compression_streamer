@@ -6,14 +6,17 @@
 #include "paginator.h"
 #include "video_codec.h"
 #include "configurator.h"
+#include "ipc_manager.h"
 
 using namespace std;
 using namespace streamer;
+using namespace ipc;
 
 
 void ServerRoutine(const Configurator& configurator) {
     VideoSource webcam(configurator.GetWebcamId());
     VideoStreamer streamer;
+    IpcManager ipc_manager(configurator.GetShmem(), configurator.GetSemaphore(), configurator.GetMQueue());
     config_videostreamer(streamer, configurator);
     streamer.Init();
 
@@ -21,6 +24,7 @@ void ServerRoutine(const Configurator& configurator) {
         Mat buffer;
         webcam >> buffer;
         buffer >> streamer;
+        buffer >> ipc_manager;
 
         if (configurator.GetDebug()) {
             std::cout << "Frame rate: " << webcam.GetFps() << endl;

@@ -17,6 +17,7 @@ DEFINES += QT_DEPRECATED_WARNINGS
 SOURCES += \
     arg_parser.cpp \
     configurator.cpp \
+    ipc_manager.cpp \
         main.cpp \
     posix_mqueue.cpp \
     posix_semaphore.cpp \
@@ -43,6 +44,7 @@ LIBS += -lrt
 HEADERS += \
     arg_parser.h \
     configurator.h \
+    ipc_manager.h \
     posix_mqueue.h \
     posix_semaphore.h \
     posix_shmem.h \

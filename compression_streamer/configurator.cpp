@@ -15,6 +15,9 @@ namespace streamer {
         _video_path = "/home/igor/temp/2019-04-02-11-45-56-tv_11_tnf.avi";
         _webcam_id = 0;
         _debug = false;
+        _shmem_name = "/udp_streamer_shmem";
+        _sem_name = "udp_streamer";
+        _mq_name = "udp_streamer";
 
         parser::ArgParser parser(argc, argv);
         auto mode = parser.read<std::string>("mode");
@@ -79,6 +82,21 @@ namespace streamer {
         return _debug;
     }
 
+    string Configurator::GetShmem() const {
+        return _shmem_name;
+    }
+
+    string Configurator::GetSemaphore() const {
+        return _sem_name;
+    }
+
+    string Configurator::GetMQueue() const {
+        return _mq_name;
+    }
+
+    bool Configurator::GetUseShmem() const {
+        return _use_shmem;
+    }
 
     std::ostream& operator<<(std::ostream& os, const Configurator::GlobalModes& conf) {
         switch (conf) {

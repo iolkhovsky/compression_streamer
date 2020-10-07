@@ -10,7 +10,7 @@
 #include <stdexcept>
 
 namespace ipc {
-    MQueueTx::MQueueTx(std::string name) {
+    PosixMQueueTx::PosixMQueueTx(std::string name) {
 
         _name = name;
 
@@ -25,7 +25,7 @@ namespace ipc {
             throw std::runtime_error("MQueue opening failed");
     }
 
-    void MQueueTx::send(std::string msg) {
+    void PosixMQueueTx::send(std::string msg) const {
 
         int res = mq_send(_desc, msg.c_str(), msg.size() + 1, 0);
         if (res == -1) {
@@ -33,7 +33,7 @@ namespace ipc {
         }
     }
 
-    MQueueRx::MQueueRx(std::string name) {
+    PosixMQueueRx::PosixMQueueRx(std::string name) {
 
         _name = name;
 
@@ -48,7 +48,7 @@ namespace ipc {
             throw std::runtime_error("MQueue opening failed");
     }
 
-    std::string MQueueRx::receive() {
+    std::string PosixMQueueRx::receive() const {
         std::string buffer('0', QueueBufferSize);
         ssize_t msg_sz = mq_receive(_desc, buffer.data(), buffer.size(), NULL);
         return {buffer.begin(), std::next(buffer.begin(), msg_sz)};

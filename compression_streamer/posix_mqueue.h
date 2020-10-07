@@ -6,7 +6,7 @@
 
 namespace ipc {
 
-    constexpr size_t QueuePermission = 0660;
+    constexpr size_t QueuePermission = 0644;
     constexpr int QueueMsgsCount = 10;
     constexpr int QueueMessageSize = 128;
     constexpr int QueueBufferSize = QueueMessageSize + 32;
@@ -16,19 +16,19 @@ namespace ipc {
         receiver = 0x1
     };
 
-    class MQueueTx {
+    class PosixMQueueTx {
     public:
-        MQueueTx(std::string name);
-        void send(std::string msg);
+        PosixMQueueTx(std::string name);
+        void send(std::string msg) const;
     private:
         mqd_t _desc;
         std::string _name;
     };
 
-    class MQueueRx {
+    class PosixMQueueRx {
     public:
-        MQueueRx(std::string name);
-        std::string receive();
+        PosixMQueueRx(std::string name);
+        std::string receive() const;
     private:
         mqd_t _desc;
         std::string _name;
