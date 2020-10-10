@@ -6,55 +6,47 @@
 #include "paginator.h"
 #include "video_codec.h"
 #include "configurator.h"
+#include "ipc_manager.h"
 
 using namespace std;
+using namespace streamer;
+using namespace ipc;
 
-template<typename Iterator>
-void print_container(Iterator f, Iterator t) {
-    cout << "[";
-    for (auto it = f; it != t; it++) {
-        cout << *it << ", ";
-    }
-    cout << endl;
-}
 
-void ServerRoutine(bool compression=true) {
-    VideoSource webcam(0);
-//    VideoSource webcam("/home/igor/temp/2019-04-02-11-45-56-tv_11_tnf.avi");
+void ServerRoutine(const Configurator& configurator) {
+    VideoSource webcam(configurator.GetWebcamId());
     VideoStreamer streamer;
-
-    streamer.SetDestination("127.0.0.1", 53500);
+    IpcManager ipc_manager(configurator.GetShmem(), configurator.GetSemaphore(), configurator.GetMQueue());
+    config_videostreamer(streamer, configurator);
     streamer.Init();
-    streamer.SetCompression(compression);
 
     while(true) {
         Mat buffer;
         webcam >> buffer;
         buffer >> streamer;
+        buffer >> ipc_manager;
 
-//        VideoCodec codec;
-
-//        imshow("Encoded/Decoded", codec.decode(codec.encode(buffer)));
-//        if (cv::waitKey(10) == 'q')
-//            break;
-
-
-        std::cout << "Frame rate: " << webcam.GetFps() << endl;
-        std::cout << "Source traffic (Mb/s):  " << StreamStatistics::convert_traffic(webcam.GetTraffic(), StreamStatistics::TrafficConversion::Byte2MegaBit) << endl;
-        std::cout << "Transmitter traffic (Mb/s): " << StreamStatistics::convert_traffic(streamer.GetTraffic(), StreamStatistics::TrafficConversion::Byte2MegaBit) << endl;
-
+        if (configurator.GetDebug()) {
+            std::cout << "Frame rate: " << webcam.GetFps() << endl;
+            std::cout << "Source traffic (Mb/s):  " << statistics::convert_traffic(webcam.GetTraffic(), statistics::TrafficConversion::Byte2MegaBit) << endl;
+            std::cout << "Transmitter traffic (Mb/s): " << statistics::convert_traffic(streamer.GetTraffic(), statistics::TrafficConversion::Byte2MegaBit) << endl;
+        }
     }
 }
 
-void ClientRoutine() {
+void ClientRoutine(const Configurator& configurator) {
     VideoReceiver receiver;
-    receiver.SetAddress("127.0.0.1", 53500);
+    IpcManager ipc_manager(configurator.GetShmem(), configurator.GetSemaphore(), configurator.GetMQueue());
+    config_videoreceiver(receiver, configurator);
     receiver.Init();
     receiver.StartReceive();
     Mat rec_frame;
     while(true) {
         receiver >> rec_frame;
-        std::cout << "Receiver traffic (Mb/s): " << StreamStatistics::convert_traffic(receiver.GetTraffic(), StreamStatistics::TrafficConversion::Byte2MegaBit) << endl;
+        rec_frame >> ipc_manager;
+        if (configurator.GetDebug()) {
+            std::cout << "Receiver traffic (Mb/s): " << statistics::convert_traffic(receiver.GetTraffic(), statistics::TrafficConversion::Byte2MegaBit) << endl;
+        }
         imshow("Receive buffer", rec_frame);
         if (cv::waitKey(1) == 'q')
             break;
@@ -62,26 +54,11 @@ void ClientRoutine() {
 }
 
 int main(int argc, char** argv) {
-//    Configurator config(argc, argv);
-
-//    cout << "Complete" << endl;
-
-    stringstream ss;
-    if (argc > 1) {
-        for (size_t i = 1; i < argc; i++)
-            ss << argv[i] << " ";
-
-        string mode;
-        ss >> mode;
-        if (mode == "server") {
-            bool compression = false;
-            if (argc > 2)
-                ss >> compression;
-            ServerRoutine(compression);
-        } else if (mode == "client")
-            ClientRoutine();
-    } else {
-        ClientRoutine();
-    }
+    Configurator config(argc, argv);
+    cout << config;
+    if (config.GetMode() == Configurator::GlobalModes::server)
+        ServerRoutine(config);
+    else
+        ClientRoutine(config);
     return 0;
 }

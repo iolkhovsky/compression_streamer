@@ -9,7 +9,7 @@ vector<vector<uint8_t>> Manager::make_packets(FrameDesc tx) {
 
     auto begin = tx.payload.begin();
     auto end = begin + tx.payload.size();
-    Paginator<vector<uint8_t>::iterator> paginator({begin, end}, 1280);
+    streamer::Paginator<vector<uint8_t>::iterator> paginator({begin, end}, 1280);
 
     size_t offset = 0;
     size_t packet_id = 0;
@@ -17,7 +17,7 @@ vector<vector<uint8_t>> Manager::make_packets(FrameDesc tx) {
         size_t video_data_size = page.get_size();
         size_t header_size = sizeof(Header);
         vector<uint8_t> packet(video_data_size + header_size);
-//        Header* preambule = static_cast<Header*>(static_cast<void*>(packet.data()));
+
         packet[0] = _frame_counter & 0xff;
         packet[1] = (_frame_counter >> 8) & 0xff;
         packet[2] = packet_id & 0xff;
@@ -37,12 +37,6 @@ vector<vector<uint8_t>> Manager::make_packets(FrameDesc tx) {
         packet[16] = (tx.compressed_size >> 8) & 0xff;
         packet[17] = (tx.compressed_size >> 16) & 0xff;
         packet[18] = (tx.compressed_size >> 25) & 0xff;
-//        preambule->frame_id = _frame_counter;
-//        preambule->image_x_size = tx.img_sz_x;
-//        preambule->image_y_size = tx.img_sz_y;
-//        preambule->packet_id = packet_id++;
-//        preambule->packet_offset = offset;
-//        preambule->pixel_size = tx.pixel_size;
 
         std::copy(page.begin(), page.end(), next(packet.begin(), sizeof(Header)));
         offset += page.get_size();

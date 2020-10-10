@@ -6,36 +6,50 @@
 using std::string;
 using std::stringstream;
 
-class Configurator {
-    enum class GlobalModes {
-        server,
-        client
+namespace streamer {
+
+    class Configurator {
+    public:
+        enum class GlobalModes {
+            server,
+            client
+        };
+        enum class StreamSources {
+            webcamera,
+            videofile
+        };
+        Configurator(int argc, char** argv);
+        // common
+        GlobalModes GetMode() const;
+        string GetIp() const;
+        size_t GetUdp() const;
+        // streamer
+        StreamSources GetSource() const;
+        size_t GetWebcamId() const;
+        string GetVideoPath() const;
+        int GetCompressionQuality() const;
+        size_t GetPacketSize() const;
+        bool GetDebug() const;
+
+        string GetShmem() const;
+        string GetSemaphore() const;
+        string GetMQueue() const;
+        bool GetUseShmem() const;
+    private:
+        GlobalModes _mode;
+        StreamSources _source;
+        string _ip;
+        size_t _udp;
+        int _compression_quality;
+        size_t _packet_size;
+        string _video_path;
+        size_t _webcam_id;
+        bool _debug;
+        bool _use_shmem;
+        string _shmem_name;
+        string _sem_name;
+        string _mq_name;
     };
-    enum class StreamSources {
-        webcamera,
-        videofile
-    };
-public:
-    Configurator(int argc, char** argv);
-    // common
-    GlobalModes GetMode() const;
-    string GetIp() const;
-    size_t GetUdp() const;
-    // streamer
-    StreamSources GetSource() const;
-    size_t GetWebcamId() const;
-    string GetVideoPath() const;
-    bool GetCompressionFlag() const;
-    int GetCompressionQuality() const;
-    size_t GetPacketSize() const;
-private:
-    GlobalModes _mode;
-    StreamSources _source;
-    string _ip;
-    size_t _udp;
-    bool _compression_en;
-    int _compression_coeff;
-    size_t _packet_size;
-    string _video_path;
-    size_t _webcam_id;
-};
+
+    std::ostream& operator<<(std::ostream& os, const Configurator& conf);
+}

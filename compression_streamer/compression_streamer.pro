@@ -1,6 +1,6 @@
 QT -= gui
 
-CONFIG += c++11 console
+CONFIG += c++1z console
 CONFIG -= app_bundle
 
 # The following define makes your compiler emit warnings if you use
@@ -15,8 +15,13 @@ DEFINES += QT_DEPRECATED_WARNINGS
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
+    arg_parser.cpp \
     configurator.cpp \
+    ipc_manager.cpp \
         main.cpp \
+    posix_mqueue.cpp \
+    posix_semaphore.cpp \
+    posix_shmem.cpp \
         stream_timing_stat.cpp \
         stream_traffic_stat.cpp \
     transport_protocol.cpp \
@@ -24,11 +29,6 @@ SOURCES += \
         video_source.cpp \
         video_streamer.cpp \
     video_receiver.cpp
-
-# Default rules for deployment.
-qnx: target.path = /tmp/$${TARGET}/bin
-else: unix:!android: target.path = /opt/$${TARGET}/bin
-!isEmpty(target.path): INSTALLS += target
 
 INCLUDEPATH += /usr/local/include/opencv4
 LIBS += -L/usr/local/lib \
@@ -38,10 +38,16 @@ LIBS += -L/usr/local/lib \
         -lopencv_imgproc \
         -lopencv_imgcodecs
 
-#LIBS += -L/usr/lib/x86_64-linux-gnu -lx264
+LIBS += -lrt
+
 
 HEADERS += \
+    arg_parser.h \
     configurator.h \
+    ipc_manager.h \
+    posix_mqueue.h \
+    posix_semaphore.h \
+    posix_shmem.h \
     stream_timing_stat.h \
     stream_traffic_stat.h \
     synchronized.h \
@@ -51,3 +57,9 @@ HEADERS += \
     video_streamer.h \
     paginator.h \
     video_receiver.h
+
+
+# Default rules for deployment.
+qnx: target.path = /tmp/$${TARGET}/bin
+else: unix:!android: target.path = /opt/$${TARGET}/bin
+!isEmpty(target.path): INSTALLS += target

@@ -1,6 +1,6 @@
 #include "stream_traffic_stat.h"
 
-namespace StreamStatistics {
+namespace statistics {
 
 TrafficStat::TrafficStat() {
     _stat_interval_usec = 1e6;

@@ -1,22 +1,25 @@
 #include "video_source.h"
 
-Mat VideoSource::Read() {
-    _cap >> _buffer;
-    _timing.PushEvent();
-    _traffic.AddTransaction(_buffer.total()*_buffer.elemSize());
-    return _buffer;
-}
+namespace streamer {
 
-double VideoSource::GetFps() const {
-    return _timing.GetAverageFps();
-}
+    Mat VideoSource::Read() {
+        _cap >> _buffer;
+        _timing.PushEvent();
+        _traffic.AddTransaction(_buffer.total()*_buffer.elemSize());
+        return _buffer;
+    }
 
-double VideoSource::GetTraffic() {
-    return _traffic.GetAverageTraffic();
-}
+    double VideoSource::GetFps() const {
+        return _timing.GetAverageFps();
+    }
 
-void operator>>(VideoSource &src, Mat& dst) {
-    dst = src.Read();
-}
+    double VideoSource::GetTraffic() {
+        return _traffic.GetAverageTraffic();
+    }
 
+    void operator>>(VideoSource &src, Mat& dst) {
+        dst = src.Read();
+    }
+
+}
 
