@@ -7,8 +7,7 @@ namespace ipc {
     IpcManager::IpcManager(std::string shmem_name, std::string sem_name, std::string mq_name)
         : _shm(shmem_name, ShmemDedfaultSize),
         _sem(sem_name),
-        _mq_tx(mq_name),
-        _mq_rx(mq_name) {
+        _mq(mq_name) {
     }
 
     void IpcManager::write_frame(const cv::Mat& img) const {
@@ -19,11 +18,11 @@ namespace ipc {
         _sem.lock();
         std::copy(img.data, img.data + frame_size, shmem_ptr);
         _sem.unlock();
-        _mq_tx.send(ss.str());
+        _mq.send(ss.str());
     }
 
     cv::Mat IpcManager::read_frame() const {
-        std::string msg = _mq_rx.receive();
+        std::string msg = _mq.receive();
         _sem.lock();
         std::stringstream ss(msg);
         size_t imgsz;

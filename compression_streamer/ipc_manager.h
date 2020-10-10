@@ -18,8 +18,7 @@ namespace ipc {
     private:
         PosixShmem _shm;
         PosixSemaphore _sem;
-        PosixMQueueTx _mq_tx;
-        PosixMQueueRx _mq_rx;
+        PosixMQueue _mq;
     };
 
     void operator>>(const cv::Mat& img, IpcManager& ipc);

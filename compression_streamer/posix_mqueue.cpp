@@ -10,7 +10,7 @@
 #include <stdexcept>
 
 namespace ipc {
-    PosixMQueueTx::PosixMQueueTx(std::string name) {
+    PosixMQueue::PosixMQueue(std::string name) {
 
         _name = name;
 
@@ -19,37 +19,19 @@ namespace ipc {
         attr.mq_maxmsg = QueueMsgsCount;
         attr.mq_msgsize = QueueMessageSize;
         attr.mq_curmsgs = 0;
-        _desc = mq_open(name.c_str(), O_WRONLY | O_CREAT, QueuePermission, &attr);
+        _desc = mq_open(name.c_str(), O_RDWR | O_CREAT | O_NONBLOCK, S_IRWXU | S_IRWXG, &attr);
 
         if (_desc == -1)
             throw std::runtime_error("MQueue opening failed");
     }
 
-    void PosixMQueueTx::send(std::string msg) const {
-
+    int PosixMQueue::send(std::string msg) const {
         int res = mq_send(_desc, msg.c_str(), msg.size() + 1, 0);
-        if (res == -1) {
-            throw std::runtime_error("Error while sending mesage using mqueue");
-        }
+        return res;
     }
 
-    PosixMQueueRx::PosixMQueueRx(std::string name) {
-
-        _name = name;
-
-        struct mq_attr attr;
-        attr.mq_flags = 0;
-        attr.mq_maxmsg = QueueMsgsCount;
-        attr.mq_msgsize = QueueMessageSize;
-        attr.mq_curmsgs = 0;
-        _desc = mq_open(name.c_str(), O_RDONLY);
-
-        if (_desc == -1)
-            throw std::runtime_error("MQueue opening failed");
-    }
-
-    std::string PosixMQueueRx::receive() const {
-        std::string buffer('0', QueueBufferSize);
+    std::string PosixMQueue::receive() const {
+        std::string buffer(QueueBufferSize, '0');
         ssize_t msg_sz = mq_receive(_desc, buffer.data(), buffer.size(), NULL);
         return {buffer.begin(), std::next(buffer.begin(), msg_sz)};
     }

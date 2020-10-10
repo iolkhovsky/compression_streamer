@@ -6,32 +6,17 @@
 
 namespace ipc {
 
-    constexpr size_t QueuePermission = 0644;
     constexpr int QueueMsgsCount = 10;
     constexpr int QueueMessageSize = 128;
     constexpr int QueueBufferSize = QueueMessageSize + 32;
 
-    enum class Direction{
-        transmitter = 0x0,
-        receiver = 0x1
-    };
-
-    class PosixMQueueTx {
+    class PosixMQueue {
     public:
-        PosixMQueueTx(std::string name);
-        void send(std::string msg) const;
-    private:
-        mqd_t _desc;
-        std::string _name;
-    };
-
-    class PosixMQueueRx {
-    public:
-        PosixMQueueRx(std::string name);
+        PosixMQueue(std::string name);
+        int send(std::string msg) const;
         std::string receive() const;
     private:
         mqd_t _desc;
         std::string _name;
     };
-
 }

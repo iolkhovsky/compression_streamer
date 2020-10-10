@@ -17,7 +17,7 @@ namespace streamer {
         _debug = false;
         _shmem_name = "/udp_streamer_shmem";
         _sem_name = "udp_streamer";
-        _mq_name = "udp_streamer";
+        _mq_name = "/udp_streamer";
 
         parser::ArgParser parser(argc, argv);
         auto mode = parser.read<std::string>("mode");
@@ -126,6 +126,9 @@ namespace streamer {
         std::cout << "Video file path: " << conf.GetVideoPath() << std::endl;
         std::cout << "Packet size: " << conf.GetPacketSize() << std::endl;
         std::cout << "Compression quality: " << conf.GetCompressionQuality() << std::endl;
+        std::cout << "Frame shared memory: " << conf.GetShmem() << std::endl;
+        std::cout << "Sync semaphore: " << conf.GetSemaphore() << std::endl;
+        std::cout << "Sync message queue: " << conf.GetMQueue() << std::endl;
         return os;
     }
 
