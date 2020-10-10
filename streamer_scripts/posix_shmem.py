@@ -36,6 +36,10 @@ if __name__ == "__main__":
     print(data.shape)
     if len(data):
         print(data[:min(10, len(data))])
+    shm.write(np.fromstring("Shmem agile test"))
+    data = shm.read()
+    test_str = data[:20].tobytes().decode("utf-8")
+    print(test_str)
 
 
 

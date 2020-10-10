@@ -1,5 +1,5 @@
 from posix_shmem import PosixShmem
-from posix_mqueue import PosixMqueue
+from posix_mqueue import PosixMQueue
 from posix_semaphore import PosixSemaphore
 
 import cv2
@@ -13,7 +13,7 @@ class IpcManager:
     def __init__(self, shmem_name, sem_name, mq_name):
         self._shmem = PosixShmem(shmem_name, SHMEM_DEFAULT_SIZE)
         self._sem = PosixSemaphore(sem_name)
-        self._mq = PosixMqueue(mq_name)
+        self._mq = PosixMQueue(mq_name)
 
     def __str__(self):
         return "StreamerIpcManager"
@@ -23,7 +23,32 @@ class IpcManager:
 
     def write_frame(self, frame):
         assert type(frame) == np.ndarray
-        pass
+        ysz, xsz, csz = frame.shape
+        msg = str(ysz * xsz * csz) + " " + str(0) + " " + str(ysz) + " " + str(xsz)
+        self._sem.lock()
+        self._shmem.write(frame)
+        self._sem.unlock()
+        self._mq.send(msg)
 
     def read_frame(self):
-        pass
+        msg = self._mq.receive(timeout=1.0)
+        if msg is None:
+            return None
+        msg = msg[:-1].decode("utf-8")
+        self._sem.lock()
+        args = msg.split()
+        total, img_type, ysz, xsz = int(args[0]), int(args[1]), int(args[2]), int(args[3])
+        data = self._shmem.read()
+        img = data[:total].copy()
+        img = img.reshape((ysz, xsz, 3))
+        self._sem.unlock()
+        return img
+
+
+if __name__ == "__main__":
+    ipc = IpcManager(shmem_name="/udp_streamer_shmem", sem_name="udp_streamer", mq_name="/udp_streamer")
+    while cv2.waitKey(30) != ord('q'):
+        frame = ipc.read_frame()
+        if frame is not None:
+            cv2.imshow("ShmemImage", frame)
+
