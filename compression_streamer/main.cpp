@@ -34,15 +34,17 @@ void ServerRoutine(const Configurator& configurator) {
     }
 }
 
-void ClientRoutine(const Configurator& config) {
+void ClientRoutine(const Configurator& configurator) {
     VideoReceiver receiver;
-    config_videoreceiver(receiver, config);
+    IpcManager ipc_manager(configurator.GetShmem(), configurator.GetSemaphore(), configurator.GetMQueue());
+    config_videoreceiver(receiver, configurator);
     receiver.Init();
     receiver.StartReceive();
     Mat rec_frame;
     while(true) {
         receiver >> rec_frame;
-        if (config.GetDebug()) {
+        rec_frame >> ipc_manager;
+        if (configurator.GetDebug()) {
             std::cout << "Receiver traffic (Mb/s): " << statistics::convert_traffic(receiver.GetTraffic(), statistics::TrafficConversion::Byte2MegaBit) << endl;
         }
         imshow("Receive buffer", rec_frame);
