@@ -32,7 +32,6 @@ namespace streamer {
             else if (source.value() == "ipc")
                 _source = StreamSources::ipc;
         }
-            _source = source.value() == "webcamera" ? StreamSources::webcamera : StreamSources::videofile;
         auto ip = parser.read<std::string>("ip");
         if (ip)
             _ip = ip.value();
