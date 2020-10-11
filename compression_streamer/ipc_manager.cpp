@@ -23,6 +23,8 @@ namespace ipc {
 
     cv::Mat IpcManager::read_frame() const {
         std::string msg = _mq.receive();
+        if (msg.empty())
+            return {};
         _sem.lock();
         std::stringstream ss(msg);
         size_t imgsz;

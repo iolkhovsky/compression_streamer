@@ -8,6 +8,7 @@ namespace streamer {
     cv::Mat IpcVideoSource::Read() {
         cv::Mat frame;
         _ipc >> frame;
+
         _timing.PushEvent();
         _traffic.AddTransaction(frame.total()*frame.elemSize());
         return frame;

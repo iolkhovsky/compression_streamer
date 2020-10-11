@@ -20,8 +20,11 @@ void run_server(const streamer::Configurator& configurator) {
     while(true) {
         Mat buffer;
         videosource >> buffer;
+        if (buffer.empty())
+            continue;
         buffer >> streamer;
-        buffer >> ipc_manager;
+        if (configurator.GetServerSaveFrame())
+            buffer >> ipc_manager;
 
         if (configurator.GetDebug()) {
             std::cout << "Frame rate: " << videosource->GetFps() << endl;

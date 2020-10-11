@@ -16,7 +16,8 @@ void run_client(const streamer::Configurator& configurator) {
     Mat rec_frame;
     while(true) {
         receiver >> rec_frame;
-        rec_frame >> ipc_manager;
+        if (configurator.GetClientSaveFrame())
+            rec_frame >> ipc_manager;
         if (configurator.GetDebug()) {
             std::cout << "Receiver traffic (Mb/s): " << statistics::convert_traffic(receiver.GetTraffic(),
                                                                                     statistics::TrafficConversion::Byte2MegaBit) << endl;

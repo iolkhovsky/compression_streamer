@@ -18,6 +18,8 @@ namespace streamer {
         _shmem_name = "/udp_streamer_shmem";
         _sem_name = "udp_streamer";
         _mq_name = "/udp_streamer";
+        _client_save_frame_shm = false;
+        _server_save_frame_shm = false;
 
         parser::ArgParser parser(argc, argv);
         auto mode = parser.read<std::string>("mode");
@@ -105,6 +107,14 @@ namespace streamer {
 
     bool Configurator::GetUseShmem() const {
         return _use_shmem;
+    }
+
+    bool Configurator::GetClientSaveFrame() const {
+        return _client_save_frame_shm;
+    }
+
+    bool Configurator::GetServerSaveFrame() const {
+        return _server_save_frame_shm;
     }
 
     std::ostream& operator<<(std::ostream& os, const Configurator::GlobalModes& conf) {

@@ -41,8 +41,11 @@ LIBS += -L/usr/local/lib \
         -lopencv_videoio \
         -lopencv_imgproc \
         -lopencv_imgcodecs
-
-LIBS += -lrt
+LIBS += -lrt -ldl
+LIBS += -L/usr/lib/x86_64-linux-gnu \
+        -lboost_stacktrace_backtrace \
+        -lboost_filesystem \
+        -lboost_system
 
 
 HEADERS += \

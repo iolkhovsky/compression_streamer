@@ -36,6 +36,9 @@ namespace streamer {
         string GetSemaphore() const;
         string GetMQueue() const;
         bool GetUseShmem() const;
+
+        bool GetClientSaveFrame() const;
+        bool GetServerSaveFrame() const;
     private:
         GlobalModes _mode;
         StreamSources _source;
@@ -50,6 +53,8 @@ namespace streamer {
         string _shmem_name;
         string _sem_name;
         string _mq_name;
+        bool _client_save_frame_shm;
+        bool _server_save_frame_shm;
     };
 
     std::ostream& operator<<(std::ostream& os, const Configurator& conf);
