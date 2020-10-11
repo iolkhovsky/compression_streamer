@@ -50,6 +50,9 @@ namespace streamer {
         auto cam_id = parser.read<int>("cam_id");
         if (cam_id)
             _webcam_id = cam_id.value();
+        auto debug = parser.read<int>("debug");
+        if (debug)
+            _debug = debug.value();
     }
 
     Configurator::GlobalModes Configurator::GetMode() const {

@@ -36,7 +36,6 @@ size_t TrafficStat::usecs_to_tail() const {
 }
 
 void TrafficStat::check_fifo() {
-    timestamp now = steady_clock::now();
     std::chrono::microseconds usec(_stat_interval_usec);
     if (_events.size()) {
         size_t totail = usecs_to_tail();

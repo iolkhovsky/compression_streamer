@@ -24,18 +24,18 @@ class IpcManager:
     def write_frame(self, frame):
         assert type(frame) == np.ndarray
         ysz, xsz, csz = frame.shape
-        msg = str(ysz * xsz * csz) + " " + str(0) + " " + str(ysz) + " " + str(xsz)
-        self._sem.lock()
-        self._shmem.write(frame)
-        self._sem.unlock()
-        self._mq.send(msg)
+        msg = str(ysz * xsz * csz) + " " + str(16) + " " + str(ysz) + " " + str(xsz)
+        if self._sem.lock(timeout=0.010):
+            self._shmem.write(frame)
+            self._sem.unlock()
+            self._mq.send(msg)
 
     def read_frame(self):
         msg = self._mq.receive(timeout=1.0)
         if msg is None:
             return None
         msg = msg[:-1].decode("utf-8")
-        self._sem.lock()
+        self._sem.lock(timeout=0.010)
         args = msg.split()
         total, img_type, ysz, xsz = int(args[0]), int(args[1]), int(args[2]), int(args[3])
         data = self._shmem.read()
@@ -43,12 +43,3 @@ class IpcManager:
         img = img.reshape((ysz, xsz, 3))
         self._sem.unlock()
         return img
-
-
-if __name__ == "__main__":
-    ipc = IpcManager(shmem_name="/udp_streamer_shmem", sem_name="udp_streamer", mq_name="/udp_streamer")
-    while cv2.waitKey(30) != ord('q'):
-        frame = ipc.read_frame()
-        if frame is not None:
-            cv2.imshow("ShmemImage", frame)
-

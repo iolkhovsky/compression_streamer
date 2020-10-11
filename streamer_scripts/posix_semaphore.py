@@ -7,9 +7,13 @@ class PosixSemaphore:
         self._sem = posix_ipc.Semaphore(name, mode=0o600)
         self._locked = False
 
-    def lock(self):
-        self._sem.acquire()
+    def lock(self, timeout=None):
         self._locked = True
+        try:
+            self._sem.acquire(timeout=timeout)
+        except posix_ipc.BusyError:
+            self._locked = False
+        return self._locked
 
     def unlock(self):
         self._sem.release()
