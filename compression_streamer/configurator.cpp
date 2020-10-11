@@ -24,7 +24,14 @@ namespace streamer {
         if (mode)
             _mode = mode.value() == "server" ? GlobalModes::server : GlobalModes::client;
         auto source = parser.read<std::string>("source");
-        if (source)
+        if (source) {
+            if (source.value() == "webcamera")
+                _source = StreamSources::webcamera;
+            else if (source.value() == "videofile")
+                _source = StreamSources::videofile;
+            else if (source.value() == "ipc")
+                _source = StreamSources::ipc;
+        }
             _source = source.value() == "webcamera" ? StreamSources::webcamera : StreamSources::videofile;
         auto ip = parser.read<std::string>("ip");
         if (ip)
@@ -110,6 +117,7 @@ namespace streamer {
         switch (source) {
             case Configurator::StreamSources::videofile: os << "video file"; break;
             case Configurator::StreamSources::webcamera: os << "web camera"; break;
+            case Configurator::StreamSources::ipc: os << "ipc stream"; break;
         }
         return os;
     }

@@ -16,12 +16,16 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 SOURCES += \
     arg_parser.cpp \
+    client.cpp \
     configurator.cpp \
+    cv_video_source.cpp \
     ipc_manager.cpp \
+    ipc_video_source.cpp \
         main.cpp \
     posix_mqueue.cpp \
     posix_semaphore.cpp \
     posix_shmem.cpp \
+    server.cpp \
         stream_timing_stat.cpp \
         stream_traffic_stat.cpp \
     transport_protocol.cpp \
@@ -43,11 +47,15 @@ LIBS += -lrt
 
 HEADERS += \
     arg_parser.h \
+    client.h \
     configurator.h \
+    cv_video_source.h \
     ipc_manager.h \
+    ipc_video_source.h \
     posix_mqueue.h \
     posix_semaphore.h \
     posix_shmem.h \
+    server.h \
     stream_timing_stat.h \
     stream_traffic_stat.h \
     synchronized.h \

@@ -17,11 +17,15 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 set(VARIABLE APP_SOURCES)
 set(APP_SOURCES 
 ${CMAKE_CURRENT_SOURCE_DIR}/../compression_streamer/arg_parser.cpp 
+${CMAKE_CURRENT_SOURCE_DIR}/../compression_streamer/client.cpp
 ${CMAKE_CURRENT_SOURCE_DIR}/../compression_streamer/configurator.cpp
+${CMAKE_CURRENT_SOURCE_DIR}/../compression_streamer/cv_video_source.cpp
 ${CMAKE_CURRENT_SOURCE_DIR}/../compression_streamer/ipc_manager.cpp
+${CMAKE_CURRENT_SOURCE_DIR}/../compression_streamer/ipc_video_source.cpp
 ${CMAKE_CURRENT_SOURCE_DIR}/../compression_streamer/posix_mqueue.cpp
 ${CMAKE_CURRENT_SOURCE_DIR}/../compression_streamer/posix_semaphore.cpp
 ${CMAKE_CURRENT_SOURCE_DIR}/../compression_streamer/posix_shmem.cpp
+${CMAKE_CURRENT_SOURCE_DIR}/../compression_streamer/server.cpp
 ${CMAKE_CURRENT_SOURCE_DIR}/../compression_streamer/stream_timing_stat.cpp
 ${CMAKE_CURRENT_SOURCE_DIR}/../compression_streamer/stream_traffic_stat.cpp
 ${CMAKE_CURRENT_SOURCE_DIR}/../compression_streamer/transport_protocol.cpp

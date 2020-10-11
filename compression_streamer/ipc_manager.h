@@ -22,5 +22,5 @@ namespace ipc {
     };
 
     void operator>>(const cv::Mat& img, IpcManager& ipc);
-    void operator>>(IpcManager& ipc, const cv::Mat& img);
+    void operator>>(IpcManager& ipc, cv::Mat& img);
 }

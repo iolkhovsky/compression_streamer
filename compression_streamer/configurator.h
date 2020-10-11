@@ -16,7 +16,8 @@ namespace streamer {
         };
         enum class StreamSources {
             webcamera,
-            videofile
+            videofile,
+            ipc
         };
         Configurator(int argc, char** argv);
         // common
