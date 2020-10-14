@@ -22,7 +22,8 @@ void run_client(const streamer::Configurator& configurator) {
             std::cout << "Receiver traffic (Mb/s): " << statistics::convert_traffic(receiver.GetTraffic(),
                                                                                     statistics::TrafficConversion::Byte2MegaBit) << endl;
         }
-        imshow("Receive buffer", rec_frame);
+        if (!rec_frame.empty())
+            imshow("Receive buffer", rec_frame);
         if (cv::waitKey(1) == 'q')
             break;
     }
