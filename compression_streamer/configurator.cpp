@@ -20,6 +20,7 @@ namespace streamer {
         _mq_name = "/udp_streamer";
         _client_save_frame_shm = false;
         _server_save_frame_shm = false;
+        _inter_package_pause_ns = 100;
 
         parser::ArgParser parser(argc, argv);
         auto mode = parser.read<std::string>("mode");
@@ -55,6 +56,9 @@ namespace streamer {
         auto debug = parser.read<int>("debug");
         if (debug)
             _debug = debug.value();
+        auto pause = parser.read<int>("package_pause");
+        if (pause)
+            _inter_package_pause_ns = pause.value();
     }
 
     Configurator::GlobalModes Configurator::GetMode() const {
@@ -115,6 +119,10 @@ namespace streamer {
 
     bool Configurator::GetServerSaveFrame() const {
         return _server_save_frame_shm;
+    }
+
+    int Configurator::GetInterPackagePause() const {
+        return _inter_package_pause_ns;
     }
 
     std::ostream& operator<<(std::ostream& os, const Configurator::GlobalModes& conf) {
