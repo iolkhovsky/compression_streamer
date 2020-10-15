@@ -83,8 +83,16 @@ namespace streamer {
         return out;
     }
 
-    size_t VideoReceiver::GetTraffic() {
+    int VideoReceiver::GetInputTraffic() {
         return _traffic.GetAverageTraffic();
+    }
+
+    int VideoReceiver::GetOutputTraffic() {
+        return _out_traffic.GetAverageTraffic();
+    }
+
+    double VideoReceiver::GetFPS() {
+        return _timing.GetAverageFps();
     }
 
     std::pair<Mat, double> VideoReceiver::ReadFrame() {
@@ -105,6 +113,7 @@ namespace streamer {
             if (!ready)
                 std::this_thread::sleep_for(std::chrono::milliseconds(1));
         }
+        _timing.PushEvent();
         _traffic.AddTransaction(desc.payload.size());
         Mat out_frame;
         if (desc.compression) {
@@ -120,6 +129,7 @@ namespace streamer {
             Mat buf = Mat(desc.img_sz_y, desc.img_sz_x, type, desc.payload.data());
             out_frame = buf.clone();
         }
+        _out_traffic.AddTransaction(out_frame.total() * out_frame.elemSize());
         return {std::move(out_frame), desc.integrity};
     }
 

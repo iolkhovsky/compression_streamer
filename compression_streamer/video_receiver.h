@@ -50,7 +50,9 @@ namespace streamer {
         void StartReceive();
         void StopReceiver();
         void Init();
-        size_t GetTraffic();
+        int GetInputTraffic();
+        int GetOutputTraffic();
+        double GetFPS();
         std::pair<Mat, double> ReadFrame();
     private:
         string _receiver_ip;
@@ -60,6 +62,7 @@ namespace streamer {
         Mat _image_buffer;
         statistics::TimingStat _timing;
         statistics::TrafficStat _traffic;
+        statistics::TrafficStat _out_traffic;
         bool _enable_loop;
         unique_ptr<thread> _thread_ptr;
         queue<Protocol::FrameDesc> _fifo;

@@ -62,7 +62,7 @@ bool Manager::handle_packet(vector<uint8_t> payload) {
     preambule.compressed_size = payload[15] + (static_cast<uint16_t>(payload[16]) << 8)
             + (static_cast<uint16_t>(payload[17]) << 16) + (static_cast<uint16_t>(payload[18]) << 24);
 
-    _received_data_volume += payload.size();
+    _received_data_volume += static_cast<int>(payload.size()) - sizeof(Header);
 
     if (preambule.compression) {
         _target_data_size = preambule.compressed_size;
@@ -70,7 +70,6 @@ bool Manager::handle_packet(vector<uint8_t> payload) {
         if (preambule.frame_id != _rx_buffer.frame_id) {
             if (_rx_buffer.payload.size()) {
                 _rx_buffer.integrity = static_cast<double>(_received_data_volume) / _target_data_size;
-                _target_data_size = 0;
                 _received_data_volume = 0;
                 _out_buffer = std::move(_rx_buffer);
                 ready_frame = true;
@@ -97,7 +96,6 @@ bool Manager::handle_packet(vector<uint8_t> payload) {
         if (preambule.frame_id != _rx_buffer.frame_id) {
             if (_rx_buffer.payload.size()) {
                 _rx_buffer.integrity = static_cast<double>(_received_data_volume) / _target_data_size;
-                _target_data_size = 0;
                 _received_data_volume = 0;
                 _out_buffer = std::move(_rx_buffer);
                 ready_frame = true;

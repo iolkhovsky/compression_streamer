@@ -38,6 +38,7 @@ struct FrameDesc {
         pixel_size = other.pixel_size;
         compression = other.compression;
         compressed_size = other.compressed_size;
+        integrity = other.integrity;
         payload = move(other.payload);
     }
     void operator=(FrameDesc&& other) {
@@ -47,6 +48,7 @@ struct FrameDesc {
         pixel_size = other.pixel_size;
         compression = other.compression;
         compressed_size = other.compressed_size;
+        integrity = other.integrity;
         payload = move(other.payload);
     }
 };
@@ -63,7 +65,7 @@ private:
     FrameDesc _out_buffer;
     size_t _prev_frame_id;
     size_t _expected_size;
-    size_t _received_data_volume;
+    int _received_data_volume;
     size_t _target_data_size;
 };
 

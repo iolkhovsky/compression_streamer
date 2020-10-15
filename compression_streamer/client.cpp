@@ -23,9 +23,14 @@ void run_client(const streamer::Configurator& configurator) {
             rec_frame >> ipc_manager;
         if (configurator.GetDebug()) {
             static int frame_counter = 0;
+            cout << frame_counter << ":" << "Receiver input traffic (Mb/s): " <<
+                         convert_traffic(receiver.GetInputTraffic(), TrafficConversion::Byte2MegaBit) << endl;
             cout << frame_counter << ":" << "Receiver traffic (Mb/s): " <<
-                         convert_traffic(receiver.GetTraffic(), TrafficConversion::Byte2MegaBit) << endl;
-            cout << frame_counter << ":" << "Frame integrity (%) " << rec_data.second * 100.0 << endl;
+                         convert_traffic(receiver.GetOutputTraffic(), TrafficConversion::Byte2MegaBit) << endl;
+            cout << frame_counter << ":" << "FPS " <<
+                    receiver.GetFPS() << endl;
+            cout << frame_counter << ":" << "Frame integrity (%) " <<
+                    static_cast<int>(rec_data.second * 100.0) << endl;
             frame_counter++;
         }
         if (!rec_frame.empty())
