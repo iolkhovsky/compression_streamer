@@ -4,17 +4,21 @@ import posix_ipc
 class PosixSemaphore:
 
     def __init__(self, name):
-        self._sem = posix_ipc.Semaphore(name, mode=0o600)
-        self._locked = False
+        flags = posix_ipc.O_RDWR + posix_ipc.O_CREAT
+        self._sem = posix_ipc.Semaphore(name, flags=flags, mode=0o600)
+        self._name = name
 
-    def lock(self):
-        self._sem.acquire()
-        self._locked = True
+    def lock(self, timeout=None):
+        try:
+            self._sem.acquire(timeout=timeout)
+        except posix_ipc.BusyError:
+            print("Can't lock semaphore " + self._name)
+            return False
+        return True
 
     def unlock(self):
-        self._sem.release()
-        self._locked = False
+        if self._sem.value == 0:
+            self._sem.release()
 
     def __del__(self):
-        if self._locked:
-            self._sem.release()
+        self.unlock()

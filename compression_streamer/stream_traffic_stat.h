@@ -10,39 +10,45 @@ using std::chrono::steady_clock;
 
 namespace statistics {
 
+    namespace default_settings {
+        constexpr int average_period_usec = 1e6;
+    }
+
     class TrafficStat {
         using timestamp = steady_clock::time_point;
 
         struct Event {
-            size_t data_amount;
+            double data_amount;
             timestamp stamp;
         };
 
     public:
-        TrafficStat();
+        TrafficStat() = default;
         TrafficStat(double time_interval_sec);
-        void AddTransaction(size_t bytes_cnt);
+        void AddTransaction(double bytes_cnt);
         double GetAverageTraffic();
 
     private:
-        mutable queue<Event> _events;
-        size_t _stat_interval_usec;
-        size_t _data_amount_acc;
+        queue<Event> _events;
+        int _stat_interval_usec = default_settings::average_period_usec;
+        double _accumulator = 0.0;
 
-        void add_event(size_t data_sz, timestamp stamp);
+        void add_event(double data_sz, timestamp stamp);
+        void remove_oldest_event();
         void check_fifo();
-        size_t usecs_to_tail() const;
+        int usecs_to_tail() const;
     };
 
-    enum class TrafficConversion {
-        Byte2Bit,
-        Byte2MegaBit,
-        Byte2GigaBit,
-        Byte2MegaByte,
-        Byte2GigaByte,
-    };
+    namespace TrafficConversion {
+        constexpr long int Byte2Bit = 8;
+        constexpr double Bit2Byte = 1. / Byte2Bit;
+        constexpr double Bit2Kilobit = 1. / 1024.;
+        constexpr double Bit2Megabit = 1. / (1024. * 1024.);
+        constexpr double Bit2Gigabit = 1. / (1024. * 1024. * 1024.);
 
-    double convert_traffic(double traffic, TrafficConversion mode);
+        constexpr double Byte2MegaBit = Byte2Bit * Bit2Megabit;
+    }
 
+    double convert_traffic(double traffic, double mode);
 }
 

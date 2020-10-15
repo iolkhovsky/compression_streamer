@@ -62,19 +62,23 @@ bool Manager::handle_packet(vector<uint8_t> payload) {
     preambule.compressed_size = payload[15] + (static_cast<uint16_t>(payload[16]) << 8)
             + (static_cast<uint16_t>(payload[17]) << 16) + (static_cast<uint16_t>(payload[18]) << 24);
 
+    _received_data_volume += static_cast<int>(payload.size()) - sizeof(Header);
+
     if (preambule.compression) {
-        size_t target_size = preambule.compressed_size;
+        _target_data_size = preambule.compressed_size;
 
         if (preambule.frame_id != _rx_buffer.frame_id) {
             if (_rx_buffer.payload.size()) {
+                _rx_buffer.integrity = static_cast<double>(_received_data_volume) / _target_data_size;
+                _received_data_volume = 0;
                 _out_buffer = std::move(_rx_buffer);
                 ready_frame = true;
             }
         }
 
-        if (target_size != _rx_buffer.payload.size())
-            _rx_buffer.payload.resize(target_size);
-        if (target_size == 0)
+        if (_target_data_size != _rx_buffer.payload.size())
+            _rx_buffer.payload.resize(_target_data_size);
+        if (_target_data_size == 0)
             return false;
 
         std::copy(next(payload.begin(), sizeof(Header)), payload.end(), next(_rx_buffer.payload.begin(), preambule.packet_offset));
@@ -87,18 +91,20 @@ bool Manager::handle_packet(vector<uint8_t> payload) {
 
         return ready_frame;
     } else {
-        size_t target_size = preambule.pixel_size * preambule.image_x_size * preambule.image_y_size;
+        _target_data_size = preambule.pixel_size * preambule.image_x_size * preambule.image_y_size;
 
         if (preambule.frame_id != _rx_buffer.frame_id) {
             if (_rx_buffer.payload.size()) {
+                _rx_buffer.integrity = static_cast<double>(_received_data_volume) / _target_data_size;
+                _received_data_volume = 0;
                 _out_buffer = std::move(_rx_buffer);
                 ready_frame = true;
             }
         }
 
-        if (target_size != _rx_buffer.payload.size())
-            _rx_buffer.payload.resize(target_size);
-        if (target_size == 0)
+        if (_target_data_size != _rx_buffer.payload.size())
+            _rx_buffer.payload.resize(_target_data_size);
+        if (_target_data_size == 0)
             return false;
 
         std::copy(next(payload.begin(), sizeof(Header)), payload.end(), next(_rx_buffer.payload.begin(), preambule.packet_offset));
@@ -116,6 +122,5 @@ bool Manager::handle_packet(vector<uint8_t> payload) {
 FrameDesc Manager::read_data_chunk() {
     return std::move(_out_buffer);
 }
-
 
 }

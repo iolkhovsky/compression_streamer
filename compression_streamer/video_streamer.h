@@ -23,6 +23,10 @@ using std::stringstream;
 
 namespace streamer {
 
+    namespace default_settings {
+        constexpr int inter_package_pause_ns = 100;
+    }
+
     class VideoStreamer {
     public:
         VideoStreamer() = default;
@@ -33,6 +37,7 @@ namespace streamer {
         void SendMessage(string msg);
         void Init();
         void SetCompression(int quality);
+        void SetInterPackagePauseNs(int pause_length);
         size_t GetTraffic();
     private:
         string _destination_ip;
@@ -46,6 +51,7 @@ namespace streamer {
         Protocol::Manager _protocol;
         int _compression;
         VideoCodec _codec;
+        int _pause_ns = default_settings::inter_package_pause_ns;
 
         void open_socket();
         size_t send_packet(const char *buf, size_t sz);

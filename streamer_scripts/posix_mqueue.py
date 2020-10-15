@@ -16,7 +16,11 @@ class PosixMQueue:
 
     def send(self, msg):
         assert type(msg) == str
-        self._mq.send(msg)
+        try:
+            self._mq.send(msg, timeout=0.01)
+            return True
+        except posix_ipc.BusyError:
+            return False
 
     def receive(self, timeout=None):
         try:

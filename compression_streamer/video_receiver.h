@@ -50,8 +50,10 @@ namespace streamer {
         void StartReceive();
         void StopReceiver();
         void Init();
-        size_t GetTraffic();
-        Mat ReadFrame();
+        int GetInputTraffic();
+        int GetOutputTraffic();
+        double GetFPS();
+        std::pair<Mat, double> ReadFrame();
     private:
         string _receiver_ip;
         size_t _receiver_udp;
@@ -60,6 +62,7 @@ namespace streamer {
         Mat _image_buffer;
         statistics::TimingStat _timing;
         statistics::TrafficStat _traffic;
+        statistics::TrafficStat _out_traffic;
         bool _enable_loop;
         unique_ptr<thread> _thread_ptr;
         queue<Protocol::FrameDesc> _fifo;
@@ -70,7 +73,7 @@ namespace streamer {
         static uint32_t convert_addr(string ip);
     };
 
-    VideoReceiver& operator>>(VideoReceiver& rec, Mat& frame);
+    VideoReceiver& operator>>(VideoReceiver& rec, std::pair<cv::Mat, double>& frame);
     void config_videoreceiver(VideoReceiver& rec, const Configurator& config);
 
 }

@@ -83,11 +83,19 @@ namespace streamer {
         return out;
     }
 
-    size_t VideoReceiver::GetTraffic() {
+    int VideoReceiver::GetInputTraffic() {
         return _traffic.GetAverageTraffic();
     }
 
-    Mat VideoReceiver::ReadFrame() {
+    int VideoReceiver::GetOutputTraffic() {
+        return _out_traffic.GetAverageTraffic();
+    }
+
+    double VideoReceiver::GetFPS() {
+        return _timing.GetAverageFps();
+    }
+
+    std::pair<Mat, double> VideoReceiver::ReadFrame() {
         size_t fifo_sz = 0;
         Protocol::FrameDesc desc;
         bool ready=false;
@@ -105,6 +113,7 @@ namespace streamer {
             if (!ready)
                 std::this_thread::sleep_for(std::chrono::milliseconds(1));
         }
+        _timing.PushEvent();
         _traffic.AddTransaction(desc.payload.size());
         Mat out_frame;
         if (desc.compression) {
@@ -120,10 +129,11 @@ namespace streamer {
             Mat buf = Mat(desc.img_sz_y, desc.img_sz_x, type, desc.payload.data());
             out_frame = buf.clone();
         }
-        return out_frame;
+        _out_traffic.AddTransaction(out_frame.total() * out_frame.elemSize());
+        return {std::move(out_frame), desc.integrity};
     }
 
-    VideoReceiver& operator>>(VideoReceiver& rec, Mat& frame) {
+    VideoReceiver& operator>>(VideoReceiver& rec, std::pair<cv::Mat, double>& frame) {
         frame = std::move(rec.ReadFrame());
         return rec;
     }

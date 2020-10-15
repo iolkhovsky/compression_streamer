@@ -27,6 +27,7 @@ struct FrameDesc {
     uint8_t compression;
     size_t compressed_size;
     vector<uint8_t> payload;
+    double integrity;
 
     FrameDesc() = default;
     FrameDesc(FrameDesc& other) = default;
@@ -37,6 +38,7 @@ struct FrameDesc {
         pixel_size = other.pixel_size;
         compression = other.compression;
         compressed_size = other.compressed_size;
+        integrity = other.integrity;
         payload = move(other.payload);
     }
     void operator=(FrameDesc&& other) {
@@ -46,6 +48,7 @@ struct FrameDesc {
         pixel_size = other.pixel_size;
         compression = other.compression;
         compressed_size = other.compressed_size;
+        integrity = other.integrity;
         payload = move(other.payload);
     }
 };
@@ -62,6 +65,8 @@ private:
     FrameDesc _out_buffer;
     size_t _prev_frame_id;
     size_t _expected_size;
+    int _received_data_volume;
+    size_t _target_data_size;
 };
 
 }

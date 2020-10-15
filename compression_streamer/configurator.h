@@ -16,7 +16,8 @@ namespace streamer {
         };
         enum class StreamSources {
             webcamera,
-            videofile
+            videofile,
+            ipc
         };
         Configurator(int argc, char** argv);
         // common
@@ -35,6 +36,11 @@ namespace streamer {
         string GetSemaphore() const;
         string GetMQueue() const;
         bool GetUseShmem() const;
+
+        bool GetClientSaveFrame() const;
+        bool GetServerSaveFrame() const;
+
+        int GetInterPackagePause() const;
     private:
         GlobalModes _mode;
         StreamSources _source;
@@ -49,6 +55,9 @@ namespace streamer {
         string _shmem_name;
         string _sem_name;
         string _mq_name;
+        bool _client_save_frame_shm;
+        bool _server_save_frame_shm;
+        int _inter_package_pause_ns;
     };
 
     std::ostream& operator<<(std::ostream& os, const Configurator& conf);

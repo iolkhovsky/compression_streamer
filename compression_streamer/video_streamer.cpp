@@ -98,18 +98,22 @@ namespace streamer {
 
     size_t VideoStreamer::send_packet(const char *buf, size_t sz) {
         size_t res = sendto(_socket_desc, buf, sz, MSG_WAITALL, (struct sockaddr *)&_dest_address, sizeof (_dest_address));
-        std::this_thread::sleep_for(std::chrono::nanoseconds(100));
+        std::this_thread::sleep_for(std::chrono::nanoseconds(_pause_ns));
         return res;
     }
 
     size_t VideoStreamer::send_packet(uint8_t *buf, size_t sz) {
         size_t res = sendto(_socket_desc, buf, sz, MSG_WAITALL, (struct sockaddr *)&_dest_address, sizeof (_dest_address));
-        std::this_thread::sleep_for(std::chrono::nanoseconds(100));
+        std::this_thread::sleep_for(std::chrono::nanoseconds(_pause_ns));
         return res;
     }
 
     size_t VideoStreamer::GetTraffic() {
         return _traffic.GetAverageTraffic();
+    }
+
+    void VideoStreamer::SetInterPackagePauseNs(int pause_length) {
+        _pause_ns = pause_length;
     }
 
     void operator>>(const Mat& frame, VideoStreamer& streamer) {
@@ -120,6 +124,7 @@ namespace streamer {
 
         streamer.SetDestination(configurator.GetIp(), configurator.GetUdp());
         streamer.SetCompression(configurator.GetCompressionQuality());
+        streamer.SetInterPackagePauseNs(configurator.GetInterPackagePause());
     }
 
 

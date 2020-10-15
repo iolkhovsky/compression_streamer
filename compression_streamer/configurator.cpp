@@ -16,16 +16,25 @@ namespace streamer {
         _webcam_id = 0;
         _debug = false;
         _shmem_name = "/udp_streamer_shmem";
-        _sem_name = "udp_streamer";
+        _sem_name = "/udp_streamer";
         _mq_name = "/udp_streamer";
+        _client_save_frame_shm = false;
+        _server_save_frame_shm = false;
+        _inter_package_pause_ns = 100;
 
         parser::ArgParser parser(argc, argv);
         auto mode = parser.read<std::string>("mode");
         if (mode)
             _mode = mode.value() == "server" ? GlobalModes::server : GlobalModes::client;
         auto source = parser.read<std::string>("source");
-        if (source)
-            _source = source.value() == "webcamera" ? StreamSources::webcamera : StreamSources::videofile;
+        if (source) {
+            if (source.value() == "webcamera")
+                _source = StreamSources::webcamera;
+            else if (source.value() == "videofile")
+                _source = StreamSources::videofile;
+            else if (source.value() == "ipc")
+                _source = StreamSources::ipc;
+        }
         auto ip = parser.read<std::string>("ip");
         if (ip)
             _ip = ip.value();
@@ -44,6 +53,12 @@ namespace streamer {
         auto cam_id = parser.read<int>("cam_id");
         if (cam_id)
             _webcam_id = cam_id.value();
+        auto debug = parser.read<int>("debug");
+        if (debug)
+            _debug = debug.value();
+        auto pause = parser.read<int>("package_pause");
+        if (pause)
+            _inter_package_pause_ns = pause.value();
     }
 
     Configurator::GlobalModes Configurator::GetMode() const {
@@ -98,6 +113,18 @@ namespace streamer {
         return _use_shmem;
     }
 
+    bool Configurator::GetClientSaveFrame() const {
+        return _client_save_frame_shm;
+    }
+
+    bool Configurator::GetServerSaveFrame() const {
+        return _server_save_frame_shm;
+    }
+
+    int Configurator::GetInterPackagePause() const {
+        return _inter_package_pause_ns;
+    }
+
     std::ostream& operator<<(std::ostream& os, const Configurator::GlobalModes& conf) {
         switch (conf) {
             case Configurator::GlobalModes::client: os << "client"; break;
@@ -110,6 +137,7 @@ namespace streamer {
         switch (source) {
             case Configurator::StreamSources::videofile: os << "video file"; break;
             case Configurator::StreamSources::webcamera: os << "web camera"; break;
+            case Configurator::StreamSources::ipc: os << "ipc stream"; break;
         }
         return os;
     }
