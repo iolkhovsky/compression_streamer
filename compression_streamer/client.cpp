@@ -14,15 +14,18 @@ void run_client(const streamer::Configurator& configurator) {
     config_videoreceiver(receiver, configurator);
     receiver.Init();
     receiver.StartReceive();
-    Mat rec_frame;
+    std::pair<Mat, double> rec_data;
+    cv::Mat rec_frame;
     while(true) {
-        receiver >> rec_frame;
+        receiver >> rec_data;
+        rec_frame = std::move(rec_data.first);
         if (configurator.GetClientSaveFrame())
             rec_frame >> ipc_manager;
         if (configurator.GetDebug()) {
             static int frame_counter = 0;
-            std::cout << ":" << frame_counter << "Receiver traffic (Mb/s): " <<
+            cout << frame_counter << ":" << "Receiver traffic (Mb/s): " <<
                          convert_traffic(receiver.GetTraffic(), TrafficConversion::Byte2MegaBit) << endl;
+            cout << frame_counter << ":" << "Frame integrity (%) " << rec_data.second * 100.0 << endl;
             frame_counter++;
         }
         if (!rec_frame.empty())

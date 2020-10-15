@@ -27,6 +27,7 @@ struct FrameDesc {
     uint8_t compression;
     size_t compressed_size;
     vector<uint8_t> payload;
+    double integrity;
 
     FrameDesc() = default;
     FrameDesc(FrameDesc& other) = default;
@@ -62,6 +63,8 @@ private:
     FrameDesc _out_buffer;
     size_t _prev_frame_id;
     size_t _expected_size;
+    size_t _received_data_volume;
+    size_t _target_data_size;
 };
 
 }

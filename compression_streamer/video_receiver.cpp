@@ -87,7 +87,7 @@ namespace streamer {
         return _traffic.GetAverageTraffic();
     }
 
-    Mat VideoReceiver::ReadFrame() {
+    std::pair<Mat, double> VideoReceiver::ReadFrame() {
         size_t fifo_sz = 0;
         Protocol::FrameDesc desc;
         bool ready=false;
@@ -120,10 +120,10 @@ namespace streamer {
             Mat buf = Mat(desc.img_sz_y, desc.img_sz_x, type, desc.payload.data());
             out_frame = buf.clone();
         }
-        return out_frame;
+        return {std::move(out_frame), desc.integrity};
     }
 
-    VideoReceiver& operator>>(VideoReceiver& rec, Mat& frame) {
+    VideoReceiver& operator>>(VideoReceiver& rec, std::pair<cv::Mat, double>& frame) {
         frame = std::move(rec.ReadFrame());
         return rec;
     }

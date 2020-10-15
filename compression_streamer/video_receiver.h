@@ -51,7 +51,7 @@ namespace streamer {
         void StopReceiver();
         void Init();
         size_t GetTraffic();
-        Mat ReadFrame();
+        std::pair<Mat, double> ReadFrame();
     private:
         string _receiver_ip;
         size_t _receiver_udp;
@@ -70,7 +70,7 @@ namespace streamer {
         static uint32_t convert_addr(string ip);
     };
 
-    VideoReceiver& operator>>(VideoReceiver& rec, Mat& frame);
+    VideoReceiver& operator>>(VideoReceiver& rec, std::pair<cv::Mat, double>& frame);
     void config_videoreceiver(VideoReceiver& rec, const Configurator& config);
 
 }
