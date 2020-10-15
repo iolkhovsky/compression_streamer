@@ -4,10 +4,10 @@
 
 namespace ipc {
 
-    IpcManager::IpcManager(std::string shmem_name, std::string sem_name, std::string mq_name)
+    IpcManager::IpcManager(std::string shmem_name, std::string sem_name, std::string mq_name, bool blocking)
         : _shm(shmem_name, ShmemDedfaultSize),
         _sem(sem_name),
-        _mq(mq_name) {
+        _mq(mq_name, blocking) {
     }
 
     void IpcManager::write_frame(const cv::Mat& img) const {

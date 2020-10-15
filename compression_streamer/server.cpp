@@ -14,7 +14,9 @@ using namespace statistics;
 void run_server(const streamer::Configurator& configurator) {
     auto videosource = make_video_source(configurator);
     VideoStreamer streamer;
-    IpcManager ipc_manager(configurator.GetShmem(), configurator.GetSemaphore(), configurator.GetMQueue());
+    std::optional<IpcManager> ipc_manager;
+    if (configurator.GetSource() != Configurator::StreamSources::ipc)
+        ipc_manager = std::move(IpcManager(configurator.GetShmem(), configurator.GetSemaphore(), configurator.GetMQueue()));
     config_videostreamer(streamer, configurator);
     streamer.Init();
 
@@ -24,8 +26,8 @@ void run_server(const streamer::Configurator& configurator) {
         if (buffer.empty())
             continue;
         buffer >> streamer;
-        if (configurator.GetServerSaveFrame())
-            buffer >> ipc_manager;
+        if (configurator.GetServerSaveFrame() && ipc_manager)
+            buffer >> ipc_manager.value();
 
         if (configurator.GetDebug()) {
             static int frame_counter = 0;

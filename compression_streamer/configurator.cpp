@@ -16,7 +16,7 @@ namespace streamer {
         _webcam_id = 0;
         _debug = false;
         _shmem_name = "/udp_streamer_shmem";
-        _sem_name = "udp_streamer";
+        _sem_name = "/udp_streamer";
         _mq_name = "/udp_streamer";
         _client_save_frame_shm = false;
         _server_save_frame_shm = false;

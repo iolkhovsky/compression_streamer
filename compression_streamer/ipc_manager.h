@@ -10,7 +10,7 @@
 namespace ipc {
     class IpcManager {
     public:
-        IpcManager(std::string shmem_name, std::string sem_name, std::string mq_name);
+        IpcManager(std::string shmem_name, std::string sem_name, std::string mq_name, bool blocking = true);
         void write_frame(const cv::Mat& img) const;
         cv::Mat read_frame() const;
 

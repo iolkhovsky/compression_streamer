@@ -12,19 +12,22 @@
 #include <iostream>
 
 namespace ipc {
-    PosixMQueue::PosixMQueue(std::string name) {
+    PosixMQueue::PosixMQueue(std::string name, bool blocking) {
         try {
             _name = name;
 
-            struct mq_attr attr;
-            attr.mq_flags = 0;
-            attr.mq_maxmsg = QueueMsgsCount;
-            attr.mq_msgsize = QueueMessageSize;
-            attr.mq_curmsgs = 0;
-            _desc = mq_open(name.c_str(), O_RDWR | O_CREAT | O_NONBLOCK, S_IRWXU | S_IRWXG, &attr);
-
+            _attr.mq_flags = 0;
+            _attr.mq_maxmsg = QueueMsgsCount;
+            _attr.mq_msgsize = QueueMessageSize;
+            _attr.mq_curmsgs = 0;
+            if (blocking)
+                _desc = mq_open(name.c_str(), O_RDWR | O_CREAT, S_IRWXG, &_attr);
+            else
+                _desc = mq_open(name.c_str(), O_RDWR | O_CREAT | O_NONBLOCK, S_IRWXG, &_attr);
             if (_desc == -1)
                 throw std::runtime_error("MQueue opening failed");
+            mq_getattr(_desc, &_attr);
+            _buffer.resize(_attr.mq_msgsize, '0');
         } catch (std::runtime_error& e) {
             std::cout << e.what() << std::endl;
         }
@@ -39,9 +42,11 @@ namespace ipc {
 
     std::string PosixMQueue::receive() const {
         if (_desc) {
-            std::string buffer(QueueBufferSize, '0');
-            ssize_t msg_sz = mq_receive(_desc, buffer.data(), buffer.size(), NULL);
-            return {buffer.begin(), std::next(buffer.begin(), msg_sz)};
+            int msg_sz = mq_receive(_desc, _buffer.data(), _buffer.size(), NULL);
+            if (msg_sz > 0)
+                return {_buffer.begin(), std::next(_buffer.begin(), msg_sz)};
+            else
+                return {};
         } else
             throw std::runtime_error("Try to receive via posix mqueue while queue hasn't been opened properly");
     }

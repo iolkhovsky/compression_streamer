@@ -12,11 +12,13 @@ namespace ipc {
 
     class PosixMQueue {
     public:
-        PosixMQueue(std::string name);
+        PosixMQueue(std::string name, bool blocking = true);
         int send(std::string msg) const;
         std::string receive() const;
     private:
         mqd_t _desc;
         std::string _name;
+        mq_attr _attr;
+        mutable std::string _buffer;
     };
 }
