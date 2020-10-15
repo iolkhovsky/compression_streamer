@@ -9,6 +9,7 @@
 using namespace streamer;
 using namespace ipc;
 using namespace std;
+using namespace statistics;
 
 void run_server(const streamer::Configurator& configurator) {
     auto videosource = make_video_source(configurator);
@@ -27,11 +28,13 @@ void run_server(const streamer::Configurator& configurator) {
             buffer >> ipc_manager;
 
         if (configurator.GetDebug()) {
-            std::cout << "Frame rate: " << videosource->GetFps() << endl;
-            std::cout << "Source traffic (Mb/s):  " << statistics::convert_traffic(streamer.GetTraffic(),
-                                                                                   statistics::TrafficConversion::Byte2MegaBit) << endl;
-            std::cout << "Transmitter traffic (Mb/s): " << statistics::convert_traffic(streamer.GetTraffic(),
-                                                                                       statistics::TrafficConversion::Byte2MegaBit) << endl;
+            static int frame_counter = 0;
+            std::cout << frame_counter << ":" << "Frame rate: " << videosource->GetFps() << endl;
+            std::cout << frame_counter << ":" << "Source traffic (Mb/s):  " <<
+                         convert_traffic(videosource->GetTraffic(), TrafficConversion::Byte2MegaBit) << endl;
+            std::cout << frame_counter << ":" << "Transmitter traffic (Mb/s): " <<
+                         convert_traffic(streamer.GetTraffic(), TrafficConversion::Byte2MegaBit) << endl;
+            frame_counter++;
         }
     }
 }

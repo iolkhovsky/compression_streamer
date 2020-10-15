@@ -6,6 +6,7 @@
 
 using namespace streamer;
 using namespace ipc;
+using namespace statistics;
 
 void run_client(const streamer::Configurator& configurator) {
     VideoReceiver receiver;
@@ -19,8 +20,10 @@ void run_client(const streamer::Configurator& configurator) {
         if (configurator.GetClientSaveFrame())
             rec_frame >> ipc_manager;
         if (configurator.GetDebug()) {
-            std::cout << "Receiver traffic (Mb/s): " << statistics::convert_traffic(receiver.GetTraffic(),
-                                                                                    statistics::TrafficConversion::Byte2MegaBit) << endl;
+            static int frame_counter = 0;
+            std::cout << ":" << frame_counter << "Receiver traffic (Mb/s): " <<
+                         convert_traffic(receiver.GetTraffic(), TrafficConversion::Byte2MegaBit) << endl;
+            frame_counter++;
         }
         if (!rec_frame.empty())
             imshow("Receive buffer", rec_frame);
