@@ -7,12 +7,12 @@ import cv2
 
 def parse_cmd_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--show_stream", type=bool, default=True,
-                        help="Show video stream")
     parser.add_argument("--source", type=str, default="test",
                         help="Source of videostream")
     parser.add_argument("--play", type=bool, default=True,
                         help="Play video")
+    parser.add_argument("--show_stream", type=bool, default=True,
+                        help="Show video stream")
     return parser.parse_args()
 
 
@@ -24,6 +24,9 @@ if __name__ == "__main__":
         cap = TestPatternGenerator(play=args.play)
     else:
         raise RuntimeError("Invalid stream source type")
+    print("Source: ", args.source)
+    print("Play: ", args.play)
+    print("Show stream: ", args.show_stream)
 
     ipc = IpcManager(shmem_name="/udp_streamer_shmem", sem_name="/udp_streamer", mq_name="/udp_streamer")
     face_cascade = \
