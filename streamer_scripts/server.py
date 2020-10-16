@@ -7,8 +7,12 @@ import cv2
 
 def parse_cmd_args():
     parser = argparse.ArgumentParser()
+    parser.add_argument("--show_stream", type=bool, default=True,
+                        help="Show video stream")
     parser.add_argument("--source", type=str, default="test",
                         help="Source of videostream")
+    parser.add_argument("--play", type=bool, default=True,
+                        help="Play video")
     return parser.parse_args()
 
 
@@ -17,7 +21,7 @@ if __name__ == "__main__":
     if args.source == "webcam":
         cap = cv2.VideoCapture(0)
     elif args.source == "test":
-        cap = TestPatternGenerator(play=False)
+        cap = TestPatternGenerator(play=args.play)
     else:
         raise RuntimeError("Invalid stream source type")
 
@@ -26,14 +30,16 @@ if __name__ == "__main__":
         cv2.CascadeClassifier('/home/igor/opencv/opencv/data/haarcascades/haarcascade_frontalface_default.xml')
     while True:
         ret, frame = cap.read()
-        cv2.imshow('Source', frame)
+        if args.show_stream:
+            cv2.imshow('Source', frame)
         try:
             processed = frame.copy()
             gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
             faces = face_cascade.detectMultiScale(gray, 1.3, 5)
             for (x, y, w, h) in faces:
                 cv2.rectangle(processed, (x, y), (x + w, y + h), (255, 0, 0), 2)
-            cv2.imshow('Processed', processed)
+            if args.show_stream:
+                cv2.imshow('Processed', processed)
             ipc.write_frame(processed)
         except:
             print("Processing exception")
