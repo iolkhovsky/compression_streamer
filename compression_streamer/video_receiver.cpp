@@ -11,11 +11,12 @@ namespace streamer {
     void VideoReceiver::ReadRoutine::operator() () {
         Protocol::FrameDesc frame_info;
         Protocol::Manager protocol;
+        vector<uint8_t> buffer(36000);
         while (_en) {
-            vector<uint8_t> buffer(36000);
             size_t n = recv(_desc, buffer.data(), buffer.size(), MSG_WAITALL);
-            buffer.resize(n);
-            bool _new_frame = protocol.handle_packet(buffer);
+            if (n > buffer.size())
+                buffer.resize(n);
+            bool _new_frame = protocol.handle_packet(buffer, n);
             if (_new_frame) {
                 lock_guard<mutex> locker(_m);
                 _fifo.push(std::move(protocol.read_data_chunk()));
@@ -24,6 +25,8 @@ namespace streamer {
     }
 
     VideoReceiver::~VideoReceiver() {
+        _enable_loop = false;
+        _thread_ptr->join();
         close(_socket_desc);
     }
 
