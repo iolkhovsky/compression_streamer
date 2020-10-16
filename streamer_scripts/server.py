@@ -1,10 +1,26 @@
 from ipc_manager import IpcManager
+from test_pattern_generator import TestPatternGenerator
 
+import argparse
 import cv2
 
 
+def parse_cmd_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--source", type=str, default="test",
+                        help="Source of videostream")
+    return parser.parse_args()
+
+
 if __name__ == "__main__":
-    cap = cv2.VideoCapture(0)
+    args = parse_cmd_args()
+    if args.source == "webcam":
+        cap = cv2.VideoCapture(0)
+    elif args.source == "test":
+        cap = TestPatternGenerator(play=False)
+    else:
+        raise RuntimeError("Invalid stream source type")
+
     ipc = IpcManager(shmem_name="/udp_streamer_shmem", sem_name="/udp_streamer", mq_name="/udp_streamer")
     face_cascade = \
         cv2.CascadeClassifier('/home/igor/opencv/opencv/data/haarcascades/haarcascade_frontalface_default.xml')
