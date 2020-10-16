@@ -8,6 +8,10 @@ namespace Protocol {
 
 using std::vector;
 
+namespace default_settings {
+    constexpr int header_size = 20;
+}
+
 struct Header {
     uint16_t frame_id;        // Identifier (counter) of current frame
     uint16_t packet_id;       // Identifier (counter) of current packet

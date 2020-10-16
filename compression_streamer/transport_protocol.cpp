@@ -1,11 +1,12 @@
 #include "transport_protocol.h"
 #include "paginator.h"
 
-namespace Protocol {
 
+namespace Protocol {
 
 vector<vector<uint8_t>> Manager::make_packets(FrameDesc tx) {
     vector<vector<uint8_t>> out;
+    int header_sz = default_settings::header_size;
 
     auto begin = tx.payload.begin();
     auto end = begin + tx.payload.size();
@@ -15,8 +16,7 @@ vector<vector<uint8_t>> Manager::make_packets(FrameDesc tx) {
     size_t packet_id = 0;
     for (auto &page: paginator) {
         size_t video_data_size = page.get_size();
-        size_t header_size = sizeof(Header);
-        vector<uint8_t> packet(video_data_size + header_size);
+        vector<uint8_t> packet(video_data_size + header_sz);
 
         packet[0] = _frame_counter & 0xff;
         packet[1] = (_frame_counter >> 8) & 0xff;
@@ -38,7 +38,11 @@ vector<vector<uint8_t>> Manager::make_packets(FrameDesc tx) {
         packet[17] = (tx.compressed_size >> 16) & 0xff;
         packet[18] = (tx.compressed_size >> 25) & 0xff;
 
-        std::copy(page.begin(), page.end(), next(packet.begin(), sizeof(Header)));
+        int available_place = static_cast<int>(packet.size()) - header_sz;
+        int page_size = std::distance(page.begin(), page.end());
+        if ((available_place <= 0) || (page_size <= 0) || (available_place < page_size))
+            throw std::runtime_error("Error in transmitter buffer - transport protocol");
+        std::copy(page.begin(), page.end(), next(packet.begin(), header_sz));
         offset += page.get_size();
 
         out.push_back(move(packet));
@@ -50,6 +54,7 @@ vector<vector<uint8_t>> Manager::make_packets(FrameDesc tx) {
 bool Manager::handle_packet(vector<uint8_t> payload) {
     bool ready_frame = false;
     Header preambule;
+    int header_sz = default_settings::header_size;
 
     preambule.frame_id = payload[0] + (static_cast<uint16_t>(payload[1]) << 8);
     preambule.packet_id = payload[2] + (static_cast<uint16_t>(payload[3]) << 8);
@@ -62,7 +67,7 @@ bool Manager::handle_packet(vector<uint8_t> payload) {
     preambule.compressed_size = payload[15] + (static_cast<uint16_t>(payload[16]) << 8)
             + (static_cast<uint16_t>(payload[17]) << 16) + (static_cast<uint16_t>(payload[18]) << 24);
 
-    _received_data_volume += static_cast<int>(payload.size()) - sizeof(Header);
+    _received_data_volume += static_cast<int>(payload.size()) - header_sz;
 
     if (preambule.compression) {
         _target_data_size = preambule.compressed_size;
@@ -81,7 +86,12 @@ bool Manager::handle_packet(vector<uint8_t> payload) {
         if (_target_data_size == 0)
             return false;
 
-        std::copy(next(payload.begin(), sizeof(Header)), payload.end(), next(_rx_buffer.payload.begin(), preambule.packet_offset));
+
+        int data_size = static_cast<int>(payload.size()) - header_sz;
+        int available_size = _rx_buffer.payload.size() - preambule.packet_offset;
+        if ((data_size <= 0) || (available_size <= 0) || (available_size < data_size))
+            throw std::runtime_error("Error in receiver buffer - transport protocol");
+        std::copy(next(payload.begin(), header_sz), payload.end(), next(_rx_buffer.payload.begin(), preambule.packet_offset));
         _rx_buffer.img_sz_x = preambule.image_x_size;
         _rx_buffer.img_sz_y = preambule.image_y_size;
         _rx_buffer.frame_id = preambule.frame_id;
@@ -107,7 +117,11 @@ bool Manager::handle_packet(vector<uint8_t> payload) {
         if (_target_data_size == 0)
             return false;
 
-        std::copy(next(payload.begin(), sizeof(Header)), payload.end(), next(_rx_buffer.payload.begin(), preambule.packet_offset));
+        int available_place = static_cast<int>(_rx_buffer.payload.size()) - preambule.packet_offset;
+        int payload_size = static_cast<int>(payload.size()) - header_sz;
+        if ((available_place <= 0) || (payload_size <= 0) || (available_place < payload_size))
+            throw std::runtime_error("Error in receiver buffer - transport protocol");
+        std::copy(next(payload.begin(), header_sz), payload.end(), next(_rx_buffer.payload.begin(), preambule.packet_offset));
         _rx_buffer.img_sz_x = preambule.image_x_size;
         _rx_buffer.img_sz_y = preambule.image_y_size;
         _rx_buffer.frame_id = preambule.frame_id;
