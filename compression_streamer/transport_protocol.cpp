@@ -1,8 +1,8 @@
 #include "transport_protocol.h"
 #include "paginator.h"
 
-namespace Protocol {
 
+namespace Protocol {
 
 vector<vector<uint8_t>> Manager::make_packets(FrameDesc tx) {
     vector<vector<uint8_t>> out;
@@ -38,6 +38,10 @@ vector<vector<uint8_t>> Manager::make_packets(FrameDesc tx) {
         packet[17] = (tx.compressed_size >> 16) & 0xff;
         packet[18] = (tx.compressed_size >> 25) & 0xff;
 
+        int available_place = static_cast<int>(packet.size()) - sizeof(Header);
+        int page_size = std::distance(page.begin(), page.end());
+        if ((available_place <= 0) || (page_size <= 0) || (available_place < page_size))
+            throw std::runtime_error("Error in transmitter buffer - transport protocol");
         std::copy(page.begin(), page.end(), next(packet.begin(), sizeof(Header)));
         offset += page.get_size();
 
@@ -81,6 +85,11 @@ bool Manager::handle_packet(vector<uint8_t> payload) {
         if (_target_data_size == 0)
             return false;
 
+
+        int data_size = static_cast<int>(payload.size()) - sizeof(Header);
+        int available_size = _rx_buffer.payload.size() - preambule.packet_offset;
+        if ((data_size <= 0) || (available_size <= 0) || (available_size < data_size))
+            throw std::runtime_error("Error in receiver buffer - transport protocol");
         std::copy(next(payload.begin(), sizeof(Header)), payload.end(), next(_rx_buffer.payload.begin(), preambule.packet_offset));
         _rx_buffer.img_sz_x = preambule.image_x_size;
         _rx_buffer.img_sz_y = preambule.image_y_size;
@@ -107,6 +116,10 @@ bool Manager::handle_packet(vector<uint8_t> payload) {
         if (_target_data_size == 0)
             return false;
 
+        int available_place = static_cast<int>(_rx_buffer.payload.size()) - preambule.packet_offset;
+        int payload_size = static_cast<int>(payload.size()) - sizeof(Header);
+        if ((available_place <= 0) || (payload_size <= 0) || (available_place < payload_size))
+            throw std::runtime_error("Error in receiver buffer - transport protocol");
         std::copy(next(payload.begin(), sizeof(Header)), payload.end(), next(_rx_buffer.payload.begin(), preambule.packet_offset));
         _rx_buffer.img_sz_x = preambule.image_x_size;
         _rx_buffer.img_sz_y = preambule.image_y_size;
