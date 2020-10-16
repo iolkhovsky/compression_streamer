@@ -7,21 +7,24 @@ import cv2
 
 def parse_cmd_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--source", type=str, default="test",
+    parser.add_argument("--source", type=str, default="webcam",
                         help="Source of videostream")
     parser.add_argument("--play", type=int, default=1,
                         help="Play video")
     parser.add_argument("--show", type=int, default=1,
                         help="Show video stream")
+    parser.add_argument("--fps", type=float, default=25.0,
+                        help="Video stream fps")
     return parser.parse_args()
 
 
 if __name__ == "__main__":
     args = parse_cmd_args()
+    cap = None
     if args.source == "webcam":
         cap = cv2.VideoCapture(0)
     elif args.source == "test":
-        cap = TestPatternGenerator(play=args.play)
+        cap = TestPatternGenerator(fps=args.fps, play=args.play)
     else:
         raise RuntimeError("Invalid stream source type")
     print("Source: ", args.source)
