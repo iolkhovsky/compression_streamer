@@ -12,6 +12,8 @@ namespace default_settings {
     constexpr int header_size = 20;
 }
 
+constexpr int BitPerByte = 8;
+
 struct Header {
     uint16_t frame_id;        // Identifier (counter) of current frame
     uint16_t packet_id;       // Identifier (counter) of current packet
@@ -61,7 +63,7 @@ class Manager {
 public:
     Manager() = default;
     vector<vector<uint8_t>> make_packets(FrameDesc tx);
-    bool handle_packet(vector<uint8_t> payload);
+    bool handle_packet(const vector<uint8_t>& payload, int packet_size);
     FrameDesc read_data_chunk();
 private:
     uint16_t _frame_counter;
