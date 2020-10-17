@@ -49,7 +49,7 @@ if __name__ == "__main__":
                 cv2.imshow('Processed', processed)
             ipc.write_frame(processed)
         except:
-            print("Processing exception")
+            print("Processing exception. Writing raw frame")
             ipc.write_frame(frame)
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
