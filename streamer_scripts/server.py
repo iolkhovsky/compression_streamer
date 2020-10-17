@@ -32,9 +32,10 @@ if __name__ == "__main__":
     print("Show stream: ", args.show)
 
     ipc = IpcManager(shmem_name="/udp_streamer_shmem", sem_name="/udp_streamer", mq_name="/udp_streamer")
-    face_cascade = \
-        cv2.CascadeClassifier('/home/igor/opencv/opencv/data/haarcascades/haarcascade_frontalface_default.xml')
+    face_cascade = cv2.CascadeClassifier('configs/haarcascade_frontalface_default.xml')
+    i = 0
     while True:
+        print("Frame # ", i)
         ret, frame = cap.read()
         if args.show:
             cv2.imshow('Source', frame)
@@ -52,6 +53,7 @@ if __name__ == "__main__":
             ipc.write_frame(frame)
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
+        i += 1
     cap.release()
     if args.show:
         cv2.destroyAllWindows()
