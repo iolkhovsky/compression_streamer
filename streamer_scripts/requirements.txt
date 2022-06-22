@@ -1,4 +1,4 @@
-numpy==1.19.2
+numpy==1.22.0
 opencv-python==4.4.0.44
 pkg-resources==0.0.0
 posix-ipc==1.0.4
